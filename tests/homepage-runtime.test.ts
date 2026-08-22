@@ -25,3 +25,20 @@ test("products route renders an independent heading and the reusable product car
   assert.match(markup, /Solar Mounting Structures/);
   assert.match(markup, /Get a Quote/);
 });
+
+test("homepage renders every material label, mark, and semantic icon into the materials section", async () => {
+  const { default: HomePage } = await import("../app/page");
+  const { materialOptions } = await import("../lib/home-content");
+  const markup = renderToStaticMarkup(await HomePage());
+  const materialsMarkup = markup.match(/<section[^>]*id="materials"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.notEqual(materialsMarkup, "");
+  assert.equal(new Set(materialOptions.map((option) => option.mark)).size, materialOptions.length);
+  assert.equal(new Set(materialOptions.map((option) => option.iconName)).size, materialOptions.length);
+
+  for (const option of materialOptions) {
+    assert.match(materialsMarkup, new RegExp(`aria-label="${option.accessibleLabel}"`));
+    assert.match(materialsMarkup, new RegExp(`<span[^>]*class="material-card__mark"[^>]*>${option.mark}<\/span>`));
+    assert.match(materialsMarkup, new RegExp(`lucide-${option.iconName}`));
+  }
+});
