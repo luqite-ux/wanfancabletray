@@ -8,9 +8,8 @@ export function resolveLocalizedText(value: LocalizedText | null | undefined, re
 }
 export function resolveLocalizedList(value: LocalizedList | null | undefined, requested = "en", defaultLocale = "en") {
   if (!value) return [];
-  return value[requested]?.filter(Boolean).length
-    ? value[requested].filter(Boolean)
-    : value[defaultLocale]?.filter(Boolean).length
-      ? value[defaultLocale].filter(Boolean)
-      : Object.values(value).find((entry) => entry?.filter(Boolean).length)?.filter(Boolean) || [];
+  const normalize = (entries: string[] | undefined) => entries?.map((entry) => entry.trim()).filter(Boolean) || [];
+  return [value[requested], value[defaultLocale], ...Object.values(value)]
+    .map(normalize)
+    .find((entries) => entries.length > 0) || [];
 }

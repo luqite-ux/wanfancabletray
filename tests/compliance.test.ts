@@ -6,6 +6,10 @@ test("scanProhibitedTerms catches English prohibited promises case-insensitively
   assert.deepEqual(scanProhibitedTerms("A WARRANTY and quality Guaranteed."), ["warranty", "guaranteed"]);
 });
 
+test("scanProhibitedTerms catches common English promise inflections", () => {
+  assert.deepEqual(scanProhibitedTerms("Our GUARANTEES are covered by a Warrantied process."), ["guarantees", "warrantied"]);
+});
+
 test("scanProhibitedTerms catches Chinese prohibited promises", () => {
   assert.deepEqual(scanProhibitedTerms("提供一年质保和免费保修。"), ["质保", "保修"]);
 });

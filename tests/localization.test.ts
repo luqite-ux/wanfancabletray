@@ -12,3 +12,10 @@ test("resolveLocalizedText uses the first non-empty language after default", () 
 test("resolveLocalizedList ignores empty requested and default lists", () => {
   assert.deepEqual(resolveLocalizedList({ en: [], fr: ["Infrastructure"] }, "de", "en"), ["Infrastructure"]);
 });
+
+test("resolveLocalizedList skips whitespace-only entries and trims its fallback", () => {
+  assert.deepEqual(
+    resolveLocalizedList({ en: [" ", "\n"], fr: [" Infrastructure ", "  "] }, "de", "en"),
+    ["Infrastructure"],
+  );
+});
