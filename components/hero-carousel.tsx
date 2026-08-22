@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import { CAROUSEL_INTERVAL_MS, getCarouselProgress, pauseCarouselClock, resetCarouselClock, startCarouselClock, type CarouselClock } from "@/lib/carousel-timing";
 
 export const heroSlides = [
   {
@@ -41,11 +42,30 @@ export function HeroCarousel() {
   const [isInteracting, setIsInteracting] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const clockRef = useRef<CarouselClock>({ elapsedBeforePause: 0, startedAt: null });
+  const [progress, setProgress] = useState(0);
 
-  const showSlide = (index: number) => setActiveIndex((index + heroSlides.length) % heroSlides.length);
-  const showNext = () => setActiveIndex((index) => (index + 1) % heroSlides.length);
-  const showPrevious = () => setActiveIndex((index) => (index - 1 + heroSlides.length) % heroSlides.length);
+  const resetCycle = () => {
+    const now = performance.now();
+    clockRef.current = isPaused || reducedMotion
+      ? pauseCarouselClock(resetCarouselClock(now), now)
+      : resetCarouselClock(now);
+    setProgress(0);
+  };
+  const showSlide = (index: number) => {
+    setActiveIndex((index + heroSlides.length) % heroSlides.length);
+    resetCycle();
+  };
+  const showNext = () => showSlide(activeIndex + 1);
+  const showPrevious = () => showSlide(activeIndex - 1);
   const isPaused = isUserPaused || isInteracting;
+  const pauseStatus = reducedMotion
+    ? "Paused because reduced motion is enabled"
+    : isUserPaused
+      ? "Paused"
+      : isInteracting
+        ? "Paused while you are interacting"
+        : `Playing — ${CAROUSEL_INTERVAL_MS / 1000} s per slide`;
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -56,9 +76,30 @@ export function HeroCarousel() {
   }, []);
 
   useEffect(() => {
-    if (isPaused || reducedMotion) return;
-    const interval = window.setInterval(showNext, 7000);
-    return () => window.clearInterval(interval);
+    const now = performance.now();
+    if (isPaused || reducedMotion) {
+      clockRef.current = pauseCarouselClock(clockRef.current, now);
+      setProgress(getCarouselProgress(clockRef.current, now));
+      return;
+    }
+
+    clockRef.current = startCarouselClock(clockRef.current, now);
+    let frame = 0;
+    const tick = (timestamp: number) => {
+      const nextProgress = getCarouselProgress(clockRef.current, timestamp);
+      setProgress(nextProgress);
+      if (nextProgress >= 1) {
+        setActiveIndex((index) => (index + 1) % heroSlides.length);
+        clockRef.current = resetCarouselClock(timestamp);
+        setProgress(0);
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      clockRef.current = pauseCarouselClock(clockRef.current, performance.now());
+    };
   }, [isPaused, reducedMotion]);
 
   const activeSlide = heroSlides[activeIndex];
@@ -105,12 +146,13 @@ export function HeroCarousel() {
             <button aria-label={`Show slide ${index + 1}: ${slide.title}`} aria-pressed={activeIndex === index} className="carousel-selector" key={slide.title} onClick={() => showSlide(index)} type="button" />
           ))}
         </div>
-        <button aria-label={isUserPaused ? "Resume automatic slides" : "Pause automatic slides"} className="carousel-control" onClick={() => setIsUserPaused((value) => !value)} type="button">
+        <span aria-live="polite" className="carousel-status">{pauseStatus}</span>
+        <button aria-label={isUserPaused ? "Resume automatic slides after focus or hover ends" : "Keep automatic slides paused after focus or hover ends"} className="carousel-control" onClick={() => setIsUserPaused((value) => !value)} type="button">
           {isUserPaused ? <Play aria-hidden="true" size={18} /> : <Pause aria-hidden="true" size={18} />}
         </button>
         <button aria-label="Next slide" className="carousel-control" onClick={showNext} type="button"><ArrowRight aria-hidden="true" size={20} /></button>
       </div>
-      <div aria-hidden="true" className={`hero-carousel__progress ${isPaused || reducedMotion ? "hero-carousel__progress--paused" : ""}`} />
+      <div aria-hidden="true" className={`hero-carousel__progress ${isPaused || reducedMotion ? "hero-carousel__progress--paused" : ""}`} style={{ transform: `scaleX(${progress})` }} />
     </div>
   );
 }

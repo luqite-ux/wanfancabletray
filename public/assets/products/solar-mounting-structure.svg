@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Solar mounting structure profile</title>
+  <desc id="desc">A clean engineering illustration of an angled structural mounting frame.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M165 338h390M230 338 357 112l128 226" fill="none" stroke="#25358f" stroke-linecap="round" stroke-linejoin="round" stroke-width="21"/>
+  <path d="M290 230h134M254 294h204" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="15"/>
+  <path d="m240 132 250 77-25 81-250-77z" fill="#d8f4ff" stroke="#0878d1" stroke-linejoin="round" stroke-width="14"/>
+  <path d="m305 152 250 77M275 215l250 77" fill="none" stroke="#0878d1" stroke-width="8"/>
+  <text x="360" y="420" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">SOLAR MOUNTING STRUCTURE</text>
+</svg>

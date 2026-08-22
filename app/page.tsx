@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Building2, CheckCircle2, CircleGauge, ClipboardCheck, Factory, FileSearch, HardHat, Layers3, PackageCheck, PanelsTopLeft, Ruler, School, ShipWheel, SunMedium, Truck, Waypoints } from "lucide-react";
+import Link from "next/link";
+import { Building2, CheckCircle2, ClipboardCheck, Factory, FileSearch, Fingerprint, HardHat, Layers3, Paintbrush, PanelsTopLeft, School, Shield, SunMedium, Truck, Waypoints } from "lucide-react";
 import { AnimatedMetric } from "@/components/animated-metric";
 import { FactoryVideo } from "@/components/factory-video";
 import { HeroCarousel } from "@/components/hero-carousel";
@@ -9,9 +10,9 @@ import { SectionHeading } from "@/components/section-heading";
 import { cableTrayMaterials, company, faqItems, productFamilies } from "@/lib/site-data";
 
 const products: ProductView[] = [
-  { slug: "cable-tray-systems", name: "Cable Tray Systems", family: "Cable management", description: "Adaptable tray systems for coordinated routing across building and industrial projects.", image: "/assets/factory/workshop-09.jpg", imageAlt: "Finished cable tray systems arranged in the Wanfan workshop" },
-  { slug: "solar-mounting-structures", name: "Solar Mounting Structures", family: "Structural support", description: "Structural components for solar projects with order-specific material and process options.", image: "/assets/factory/workshop-11.jpg", imageAlt: "Manufactured structural components in the Wanfan workshop" },
-  { slug: "seismic-supports", name: "Seismic Supports", family: "Building systems", description: "Support systems prepared for coordinated installation requirements in commercial buildings.", image: "/assets/factory/workshop-07.jpg", imageAlt: "Wanfan support-system production equipment" },
+  { slug: "cable-tray-systems", name: "Cable Tray Systems", family: "Cable management", description: "Adaptable tray systems for coordinated routing across building and industrial projects.", image: "/assets/products/cable-tray-system.svg", imageAlt: "Engineering illustration of a cable tray system profile" },
+  { slug: "utility-tunnel-supports", name: "Utility-Tunnel Supports", family: "Structural support", description: "Support components for utility-tunnel and infrastructure corridor requirements.", image: "/assets/products/utility-tunnel-support.svg", imageAlt: "Engineering illustration of a utility-tunnel support profile" },
+  { slug: "solar-mounting-structures", name: "Solar Mounting Structures", family: "Structural support", description: "Structural components for solar projects with order-specific material and process options.", image: "/assets/products/solar-mounting-structure.svg", imageAlt: "Engineering illustration of a solar mounting structure profile" },
 ];
 
 const applications = [
@@ -33,11 +34,11 @@ const manufacturingSteps = [
 ];
 
 const materialOptions = [
-  { icon: PanelsTopLeft, title: "Galvanized steel", text: "A practical steel option for cable-management systems." },
-  { icon: CircleGauge, title: "Powder-coated steel", text: "A surface option for coordinated project finishes." },
-  { icon: Ruler, title: "Zinc-aluminum-magnesium steel", text: "A coated steel option available for confirmed requirements." },
-  { icon: PackageCheck, title: "Stainless steel 201 / 304 / 316", text: "Multiple stainless-steel grades for specified applications." },
-  { icon: ShipWheel, title: "Aluminum alloy", text: "An aluminum-alloy option for selected cable-routing projects." },
+  { icon: Shield, title: "Galvanized steel", text: "A steel option with a galvanized surface." },
+  { icon: Paintbrush, title: "Powder-coated steel", text: "A steel option with a powder-coated finish." },
+  { icon: Layers3, title: "Zinc-aluminum-magnesium steel", text: "A coated steel option available for confirmed requirements." },
+  { icon: Fingerprint, title: "Stainless steel 201 / 304 / 316", text: "Multiple specified stainless-steel grades for project applications." },
+  { icon: PanelsTopLeft, title: "Aluminum alloy", text: "An aluminum-alloy profile option for selected cable-routing projects." },
 ];
 
 const publishedArticles: Array<{ title: string; date: string; excerpt: string }> = [];
@@ -63,7 +64,7 @@ export default function HomePage() {
         <div className="page-container">
           <SectionHeading eyebrow="Product systems" title="Cable-management systems that keep the full product in view." description="Explore core product families, then bring project dimensions and material requirements into the inquiry process." />
           <div className="product-grid">{products.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
-          <div className="section-inline-cta"><InquiryCta label="Explore All Product Families" /></div>
+          <div className="section-inline-cta"><Link className="inquiry-cta" href="/products">Explore All Product Families</Link></div>
         </div>
       </section>
 
@@ -109,7 +110,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.title}><time>{article.date}</time><h3>{article.title}</h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
+      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.title}><time>{article.date}</time><h3>{article.title}</h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
 
       <section className="inquiry-banner" id="inquiry" aria-labelledby="inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Start your project discussion</p><h2 id="inquiry-heading">Bring your drawing, quantity, and target application.</h2><p>Our inquiry workflow is ready for the project details your team needs to share.</p></div><InquiryCta label="Request a Quote" /></div></section>
       <p className="sr-only">Available product families include {productFamilies.map((family) => family.name.en).join(", ")}.</p>

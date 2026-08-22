@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Utility tunnel support profile</title>
+  <desc id="desc">A clean engineering illustration of a channel support with bracket arms.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M160 90v270M160 90h400M160 360h400" fill="none" stroke="#25358f" stroke-linecap="round" stroke-linejoin="round" stroke-width="22"/>
+  <path d="M310 112v220M450 112v220" fill="none" stroke="#0878d1" stroke-linecap="round" stroke-width="18"/>
+  <path d="M255 186h110M255 276h110M395 186h110M395 276h110" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="14"/>
+  <g fill="#10233f"><circle cx="160" cy="90" r="11"/><circle cx="160" cy="360" r="11"/><circle cx="560" cy="90" r="11"/><circle cx="560" cy="360" r="11"/></g>
+  <text x="360" y="420" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">UTILITY-TUNNEL SUPPORT</text>
+</svg>

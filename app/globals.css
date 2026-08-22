@@ -197,15 +197,14 @@ h1 {
 .secondary-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 0 18px; border: 1px solid rgba(255,255,255,.78); border-radius: 999px; color: #fff; font-weight: 750; text-decoration: none; }
 .secondary-cta:hover { background: rgba(255,255,255,.14); }
 .hero-carousel__controls { position: absolute; right: max(24px, calc((100vw - 1200px) / 2)); bottom: 37px; display: flex; align-items: center; gap: 11px; }
+.carousel-status { min-width: 74px; color: rgba(255,255,255,.86); font-family: var(--font-geist-mono), monospace; font-size: .72rem; font-weight: 700; text-align: right; }
 .carousel-control, .carousel-selector { border: 1px solid rgba(255,255,255,.62); background: rgba(16,35,63,.5); color: #fff; cursor: pointer; }
 .carousel-control { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; }
 .carousel-control:hover { background: rgba(255,255,255,.22); }
 .hero-carousel__selectors { display: flex; gap: 8px; }
 .carousel-selector { width: 36px; height: 8px; border-radius: 999px; }
 .carousel-selector[aria-pressed="true"] { background: #bcecff; }
-.hero-carousel__progress { position: absolute; right: 0; bottom: 0; left: 0; height: 4px; transform-origin: left; background: var(--electric-cyan); animation: carousel-progress 7s linear infinite; }
-.hero-carousel__progress--paused { animation-play-state: paused; }
-@keyframes carousel-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.hero-carousel__progress { position: absolute; right: 0; bottom: 0; left: 0; height: 4px; transform-origin: left; background: var(--electric-cyan); transition: transform 80ms linear; }
 
 .metrics-grid, .solutions-grid, .materials-grid { display: grid; gap: 18px; }
 .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Cable tray system profile</title>
+  <desc id="desc">A clean engineering illustration of a ladder cable tray with evenly spaced rungs.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M115 110v232h490V110" fill="none" stroke="#25358f" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+  <path d="M115 150h490M115 302h490" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="8"/>
+  <g stroke="#0878d1" stroke-linecap="round" stroke-width="17">
+    <path d="M155 138v178M225 138v178M295 138v178M365 138v178M435 138v178M505 138v178M575 138v178"/>
+  </g>
+  <path d="M169 383h382" fill="none" stroke="#10233f" stroke-linecap="round" stroke-width="8"/>
+  <path d="m169 383 20-12v24zm382 0-20-12v24z" fill="#10233f"/>
+  <text x="360" y="422" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">CABLE TRAY SYSTEM</text>
+</svg>
