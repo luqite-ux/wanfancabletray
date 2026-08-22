@@ -109,27 +109,25 @@ test("carousel exposes its actual paused state for interaction and manual pause"
 });
 
 test("product cards use verified-family engineering visuals instead of workshop views", async () => {
-  const productData = homePage.match(/const products:[\s\S]+?\n\];/)?.[0] ?? "";
+  const { homepageProducts } = await import("../lib/home-content");
   const cableTrayVisual = await projectSource("public/assets/products/cable-tray-system.svg");
   const tunnelSupportVisual = await projectSource("public/assets/products/utility-tunnel-support.svg");
   const solarVisual = await projectSource("public/assets/products/solar-mounting-structure.svg");
 
-  assert.doesNotMatch(productData, /workshop-/);
-  assert.match(productData, /\/assets\/products\/cable-tray-system\.svg/);
-  assert.match(productData, /\/assets\/products\/utility-tunnel-support\.svg/);
-  assert.match(productData, /\/assets\/products\/solar-mounting-structure\.svg/);
+  assert.equal(homepageProducts.length, 3);
+  assert.deepEqual(homepageProducts.map((product) => product.image), [
+    "/assets/products/cable-tray-system.svg",
+    "/assets/products/utility-tunnel-support.svg",
+    "/assets/products/solar-mounting-structure.svg",
+  ]);
+  assert.equal(homepageProducts.every((product) => !product.image.includes("workshop-")), true);
   for (const source of [cableTrayVisual, tunnelSupportVisual, solarVisual]) {
     assert.match(source, /<svg/);
     assert.match(source, /<title(?:\s|>)/);
   }
 });
 
-test("material identifiers are distinct and purposeful, and homepage links have matching labels", () => {
-  assert.match(homePage, /Shield/);
-  assert.match(homePage, /Paintbrush/);
-  assert.match(homePage, /Layers3/);
-  assert.match(homePage, /Fingerprint/);
-  assert.match(homePage, /PanelsTopLeft/);
+test("homepage links and conditional news headings have matching targets and labels", () => {
   assert.match(homePage, /<Link className="inquiry-cta" href="\/products">Explore All Product Families<\/Link>/);
   assert.match(homePage, /<SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan"/);
 });

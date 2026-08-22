@@ -1,19 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Building2, CheckCircle2, ClipboardCheck, Factory, FileSearch, Fingerprint, HardHat, Layers3, Paintbrush, PanelsTopLeft, School, Shield, SunMedium, Truck, Waypoints } from "lucide-react";
+import { Building2, CheckCircle2, ClipboardCheck, Factory, FileSearch, HardHat, Layers3, School, SunMedium, Truck, Waypoints } from "lucide-react";
 import { AnimatedMetric } from "@/components/animated-metric";
 import { FactoryVideo } from "@/components/factory-video";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { InquiryCta } from "@/components/inquiry-cta";
-import { ProductCard, type ProductView } from "@/components/product-card";
+import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
+import { homepageProducts, materialOptions } from "@/lib/home-content";
 import { cableTrayMaterials, company, faqItems, productFamilies } from "@/lib/site-data";
-
-const products: ProductView[] = [
-  { slug: "cable-tray-systems", name: "Cable Tray Systems", family: "Cable management", description: "Adaptable tray systems for coordinated routing across building and industrial projects.", image: "/assets/products/cable-tray-system.svg", imageAlt: "Engineering illustration of a cable tray system profile" },
-  { slug: "utility-tunnel-supports", name: "Utility-Tunnel Supports", family: "Structural support", description: "Support components for utility-tunnel and infrastructure corridor requirements.", image: "/assets/products/utility-tunnel-support.svg", imageAlt: "Engineering illustration of a utility-tunnel support profile" },
-  { slug: "solar-mounting-structures", name: "Solar Mounting Structures", family: "Structural support", description: "Structural components for solar projects with order-specific material and process options.", image: "/assets/products/solar-mounting-structure.svg", imageAlt: "Engineering illustration of a solar mounting structure profile" },
-];
 
 const applications = [
   { icon: Building2, title: "Commercial buildings", text: "Organized cable routing and support across coordinated building services." },
@@ -31,14 +26,6 @@ const manufacturingSteps = [
   { icon: Factory, title: "Production", text: "Schedule the agreed manufacturing process after order confirmation." },
   { icon: ClipboardCheck, title: "Inspection", text: "Complete order-specific checks before arranging release." },
   { icon: Truck, title: "Shipment", text: "Coordinate dispatch details and delivery documentation with your team." },
-];
-
-const materialOptions = [
-  { icon: Shield, title: "Galvanized steel", text: "A steel option with a galvanized surface." },
-  { icon: Paintbrush, title: "Powder-coated steel", text: "A steel option with a powder-coated finish." },
-  { icon: Layers3, title: "Zinc-aluminum-magnesium steel", text: "A coated steel option available for confirmed requirements." },
-  { icon: Fingerprint, title: "Stainless steel 201 / 304 / 316", text: "Multiple specified stainless-steel grades for project applications." },
-  { icon: PanelsTopLeft, title: "Aluminum alloy", text: "An aluminum-alloy profile option for selected cable-routing projects." },
 ];
 
 const publishedArticles: Array<{ title: string; date: string; excerpt: string }> = [];
@@ -63,7 +50,7 @@ export default function HomePage() {
       <section className="content-section product-section" id="product-systems">
         <div className="page-container">
           <SectionHeading eyebrow="Product systems" title="Cable-management systems that keep the full product in view." description="Explore core product families, then bring project dimensions and material requirements into the inquiry process." />
-          <div className="product-grid">{products.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
+          <div className="product-grid">{homepageProducts.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
           <div className="section-inline-cta"><Link className="inquiry-cta" href="/products">Explore All Product Families</Link></div>
         </div>
       </section>
@@ -99,7 +86,7 @@ export default function HomePage() {
       <section className="content-section materials-section" id="materials">
         <div className="page-container">
           <SectionHeading align="center" eyebrow="Material and surface options" title="Choose from verified material directions." description={`${cableTrayMaterials.en.length} cable-tray material options are available for confirmed project requirements.`} />
-          <div className="materials-grid">{materialOptions.map(({ icon: Icon, title, text }) => <article className="material-card" key={title}><Icon aria-hidden="true" className="material-card__icon" strokeWidth={1.7} /><h3>{title}</h3><p>{text}</p></article>)}</div>
+          <div className="materials-grid">{materialOptions.map(({ accessibleLabel, icon: Icon, mark, title, text }) => <article aria-label={accessibleLabel} className="material-card" key={title}><Icon aria-hidden="true" className="material-card__icon" strokeWidth={1.7} /><span aria-hidden="true" className="material-card__mark">{mark}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
         </div>
       </section>
 

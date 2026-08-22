@@ -260,6 +260,10 @@ h1 {
 .materials-section { background: #fff; }
 .materials-section .section-heading { margin-bottom: 38px; }
 .material-card h3 { font-size: 1.02rem; }
+.material-card__mark { display: inline-flex; min-height: 30px; align-items: center; padding: 0 9px; margin-top: 18px; border: 1px solid rgba(8,120,209,.25); border-radius: 999px; color: var(--engineering-blue); background: var(--mist); font-family: var(--font-geist-mono), monospace; font-size: .78rem; font-weight: 800; letter-spacing: .04em; }
+.products-page { min-height: calc(100vh - 80px); }
+.products-page h1 { margin: 14px 0; font-size: clamp(2.8rem, 6vw, 5rem); }
+.products-page__intro { max-width: 700px; margin: 0 0 42px; color: #405b78; font-size: 1.05rem; line-height: 1.7; }
 
 .faq-section { background: linear-gradient(135deg, #f7fcff, #eaf8ff); }
 .faq-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(400px, 1.2fr); gap: clamp(34px, 8vw, 120px); }
