@@ -144,7 +144,7 @@ h1 {
 .fact-card strong { display: block; color: var(--engineering-blue); font-size: 1.7rem; }
 .fact-card span { display: block; margin-top: 8px; line-height: 1.45; }
 
-.site-footer { padding: 68px 24px 20px; background: var(--ink); color: rgba(255, 255, 255, 0.85); }
+.site-footer { --focus-ring: #7fdcff; padding: 68px 24px 20px; background: var(--ink); color: rgba(255, 255, 255, 0.85); }
 .site-footer__grid, .site-footer__bottom { max-width: 1200px; margin: 0 auto; }
 .site-footer__grid { display: grid; grid-template-columns: minmax(260px, 1.5fr) minmax(150px, 0.7fr) minmax(230px, 0.9fr); gap: clamp(34px, 6vw, 90px); }
 .site-footer__brand p { max-width: 380px; margin: 16px 0 22px; line-height: 1.65; }
