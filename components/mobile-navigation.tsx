@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import type { NavigationItem } from "@/lib/site-data";
+import { chromeCopy, type NavigationItem } from "@/lib/site-data";
 
 interface MobileNavigationProps {
   navigation: NavigationItem[];
@@ -17,7 +17,7 @@ export function MobileNavigation({ navigation }: MobileNavigationProps) {
       <button
         aria-controls="mobile-primary-navigation"
         aria-expanded={isOpen}
-        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-label={isOpen ? chromeCopy.mobileNavigation.closeMenu : chromeCopy.mobileNavigation.openMenu}
         className="mobile-menu-toggle"
         onClick={() => setIsOpen((open) => !open)}
         type="button"
@@ -25,7 +25,7 @@ export function MobileNavigation({ navigation }: MobileNavigationProps) {
         {isOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
       </button>
       {isOpen ? (
-        <nav aria-label="Mobile primary navigation" className="mobile-menu" id="mobile-primary-navigation">
+        <nav aria-label={chromeCopy.mobileNavigation.primaryNavigationLabel} className="mobile-menu" id="mobile-primary-navigation">
           {navigation.map((item) => (
             <Link href={item.href} key={item.href} onClick={() => setIsOpen(false)}>
               {item.label}

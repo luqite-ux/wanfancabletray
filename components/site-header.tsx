@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { MobileNavigation } from "@/components/mobile-navigation";
-import { company, primaryNavigation } from "@/lib/site-data";
+import { chromeCopy, company, primaryNavigation } from "@/lib/site-data";
 
 export function SiteHeader() {
   const desktopNavigation = primaryNavigation.filter((item) => item.href !== "/request-a-quote");
@@ -14,7 +14,7 @@ export function SiteHeader() {
           <Image alt={`${company.brand} logo`} height={52} priority src="/assets/brand/logo.png" width={58} />
           <span>{company.brand}</span>
         </Link>
-        <nav aria-label="Primary navigation" className="desktop-navigation">
+        <nav aria-label={chromeCopy.header.primaryNavigationLabel} className="desktop-navigation">
           {desktopNavigation.map((item) => (
             <Link href={item.href} key={item.href}>
               {item.label}
@@ -22,7 +22,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="site-header__actions">
-          <InquiryCta className="desktop-inquiry" label="Get a Quote" />
+          <InquiryCta className="desktop-inquiry" label={chromeCopy.header.getQuote} />
           <MobileNavigation navigation={primaryNavigation} />
         </div>
       </div>

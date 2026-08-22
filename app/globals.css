@@ -7,6 +7,7 @@
   --ink: #10233f;
   --mist: #edf7ff;
   --surface: #ffffff;
+  --focus-ring: #006bb6;
 }
 
 * { box-sizing: border-box; }
@@ -23,11 +24,11 @@ body {
 a { color: inherit; }
 
 :focus-visible {
-  outline: 3px solid var(--electric-cyan);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
-.site-shell { overflow: hidden; }
+.site-shell { min-width: 0; }
 
 .site-header {
   position: sticky;

@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildCopyright,
+  chromeCopy,
   company,
   primaryNavigation,
   publicCopy,
+  trademarkRegistrations,
 } from "../lib/site-data.ts";
 import { scanProhibitedTerms } from "../lib/compliance.ts";
 
@@ -25,6 +27,21 @@ test("public contact copy comes from the single verified company record", () => 
   assert.equal(publicCopy.contact.address, company.address);
 });
 
-test("shared public copy has no prohibited promises", () => {
-  assert.deepEqual(scanProhibitedTerms(JSON.stringify(publicCopy)), []);
+test("registered trademark details use the verified centralized records", () => {
+  assert.deepEqual(trademarkRegistrations, [
+    { kind: "word mark", classNumber: 6, registrationNumber: "74440645" },
+    { kind: "device mark", classNumber: 6, registrationNumber: "75536653" },
+  ]);
+});
+
+test("all visible shared chrome copy contains no prohibited promises", () => {
+  assert.deepEqual(
+    scanProhibitedTerms(JSON.stringify({
+      publicCopy,
+      chromeCopy,
+      navigation: primaryNavigation.map((item) => item.label),
+      trademarkRegistrations,
+    })),
+    [],
+  );
 });

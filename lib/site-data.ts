@@ -17,6 +17,12 @@ export interface NavigationItem {
   href: string;
 }
 
+export interface TrademarkRegistration {
+  kind: "word mark" | "device mark";
+  classNumber: number;
+  registrationNumber: string;
+}
+
 export interface ProductFamily {
   slug: string;
   name: LocalizedText;
@@ -61,12 +67,41 @@ export const publicCopy = {
   companyDescription: "Cable-management and structural-support manufacturing for project requirements.",
 };
 
+export const chromeCopy = {
+  header: {
+    primaryNavigationLabel: "Primary navigation",
+    getQuote: "Get a Quote",
+  },
+  mobileNavigation: {
+    openMenu: "Open navigation menu",
+    closeMenu: "Close navigation menu",
+    primaryNavigationLabel: "Mobile primary navigation",
+  },
+  footer: {
+    explore: "Explore",
+    contact: "Contact",
+    navigationLabel: "Footer navigation",
+    startInquiry: "Start an Inquiry",
+  },
+};
+
+export const trademarkRegistrations: TrademarkRegistration[] = [
+  { kind: "word mark", classNumber: 6, registrationNumber: "74440645" },
+  { kind: "device mark", classNumber: 6, registrationNumber: "75536653" },
+];
+
 function normalizeSentenceEnd(value: string) {
   return value.trim().replace(/[.\s]+$/, "");
 }
 
 export function buildCopyright(year: number | string = new Date().getFullYear()) {
   return `© ${year} ${normalizeSentenceEnd(company.publicName)}. All rights reserved.`;
+}
+
+export function formatTrademarkRegistrations(registrations = trademarkRegistrations) {
+  return registrations
+    .map((registration) => `Registered Class ${registration.classNumber} ${registration.kind} No. ${registration.registrationNumber}`)
+    .join(" · ");
 }
 
 const english = (text: string): LocalizedText => ({ en: text });
