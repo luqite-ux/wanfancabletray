@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --engineering-blue: #25358f;
+  --clear-blue: #0878d1;
+  --electric-cyan: #00aee8;
+  --ink: #10233f;
+  --mist: #edf7ff;
+  --surface: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--surface);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--electric-cyan);
+  outline-offset: 3px;
+}
+
+.site-shell { overflow: hidden; }
+
+.foundation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.brand-mark {
+  color: var(--engineering-blue);
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.home-link { font-weight: 650; text-decoration: none; }
+
+.foundation-main {
+  min-height: calc(100vh - 76px);
+  padding: 96px 24px;
+  background:
+    linear-gradient(rgba(8, 120, 209, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 120, 209, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, var(--mist), #fff 58%, #e6faff);
+  background-size: 36px 36px, 36px 36px, auto;
+}
+
+.foundation-content { max-width: 900px; margin: 0 auto; }
+
+.eyebrow {
+  color: var(--clear-blue);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 780px;
+  margin: 18px 0;
+  color: var(--engineering-blue);
+  font-size: clamp(2.8rem, 7vw, 5.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+}
+
+.foundation-content p { max-width: 620px; font-size: 1.1rem; line-height: 1.7; }
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.fact-card {
+  padding: 22px;
+  border: 1px solid rgba(8, 120, 209, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 50px rgba(37, 53, 143, 0.08);
+}
+
+.fact-card strong { display: block; color: var(--engineering-blue); font-size: 1.7rem; }
+.fact-card span { display: block; margin-top: 8px; line-height: 1.45; }
+
+@media (max-width: 680px) {
+  .foundation-main { padding-top: 64px; }
+  .fact-grid { grid-template-columns: 1fr; }
+}
