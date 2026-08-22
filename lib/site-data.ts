@@ -12,6 +12,11 @@ export interface Company {
   supportedLocales: SiteLocale[];
 }
 
+export interface NavigationItem {
+  label: string;
+  href: string;
+}
+
 export interface ProductFamily {
   slug: string;
   name: LocalizedText;
@@ -34,6 +39,35 @@ export const company: Company = {
   defaultLocale: "en",
   supportedLocales: ["en"],
 };
+
+export const primaryNavigation: NavigationItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
+  { label: "Solutions", href: "/solutions" },
+  { label: "Manufacturing", href: "/manufacturing" },
+  { label: "Quality", href: "/quality" },
+  { label: "About", href: "/about" },
+  { label: "News", href: "/news" },
+  { label: "Contact", href: "/contact" },
+  { label: "Request a Quote", href: "/request-a-quote" },
+];
+
+export const publicCopy = {
+  contact: {
+    email: company.email,
+    phone: company.phone,
+    address: company.address,
+  },
+  companyDescription: "Cable-management and structural-support manufacturing for project requirements.",
+};
+
+function normalizeSentenceEnd(value: string) {
+  return value.trim().replace(/[.\s]+$/, "");
+}
+
+export function buildCopyright(year: number | string = new Date().getFullYear()) {
+  return `© ${year} ${normalizeSentenceEnd(company.publicName)}. All rights reserved.`;
+}
 
 const english = (text: string): LocalizedText => ({ en: text });
 

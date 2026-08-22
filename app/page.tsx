@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { company } from "@/lib/site-data";
 
 const foundationFacts = [
@@ -9,14 +8,7 @@ const foundationFacts = [
 
 export default function HomePage() {
   return (
-    <div className="site-shell">
-      <header className="foundation-header">
-        <Link className="brand-mark" href="/" aria-label={`${company.brand} home`}>
-          {company.brand}
-        </Link>
-        <Link className="home-link" href="/">Home</Link>
-      </header>
-      <main className="foundation-main">
+    <main className="foundation-main">
         <section className="foundation-content" aria-labelledby="home-title">
           <span className="eyebrow">Cable management &amp; structural support</span>
           <h1 id="home-title">Engineered cable management for demanding projects.</h1>
@@ -32,7 +24,6 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-      </main>
-    </div>
+    </main>
   );
 }
