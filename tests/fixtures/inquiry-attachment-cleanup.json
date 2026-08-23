@@ -1,0 +1,33 @@
+{
+  "tenantId": "tenant-wanfan",
+  "storageObjects": [
+    {
+      "path": "tenant-wanfan/11111111-1111-4111-8111-111111111111/orphan.pdf",
+      "created_at": "2026-08-20T00:00:00.000Z"
+    },
+    {
+      "path": "tenant-wanfan/22222222-2222-4222-8222-222222222222/referenced.pdf",
+      "created_at": "2026-08-19T00:00:00.000Z"
+    },
+    {
+      "path": "tenant-wanfan/33333333-3333-4333-8333-333333333333/recent.pdf",
+      "created_at": "2026-08-23T11:30:00.000Z"
+    },
+    {
+      "path": "another-tenant/11111111-1111-4111-8111-111111111111/foreign.pdf",
+      "created_at": "2026-08-18T00:00:00.000Z"
+    }
+  ],
+  "inquiries": [
+    {
+      "id": "inquiry-referenced",
+      "tenant_id": "tenant-wanfan",
+      "message": "Attachment Path: tenant-wanfan/22222222-2222-4222-8222-222222222222/referenced.pdf"
+    },
+    {
+      "id": "other-inquiry",
+      "tenant_id": "another-tenant",
+      "message": "Attachment Path: another-tenant/11111111-1111-4111-8111-111111111111/foreign.pdf"
+    }
+  ]
+}
