@@ -1,6 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
+const isExternalRun = Boolean(process.env.PLAYWRIGHT_TEST_BASE_URL);
+const localCaptchaSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="56" viewBox="0 0 160 56"><rect width="160" height="56" rx="8" fill="#f8fafc"/><text x="38" y="36" fill="#0f172a" font-size="24">TEST</text></svg>';
+
 const independentRoutes = [
   ["/", "Engineered Cable Management for Demanding Projects."],
   ["/products", "Cable-management product systems"],
@@ -29,6 +32,24 @@ function monitorRuntime(page: Page) {
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
   return problems;
 }
+
+async function stubCaptcha(page: Page) {
+  await page.route(/\/api\/captcha(?:\?.*)?$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        svg: localCaptchaSvg,
+        token: "local-playwright-captcha-token",
+        expiresAt: Date.now() + 5 * 60_000,
+      }),
+    });
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  if (!isExternalRun) await stubCaptcha(page);
+});
 
 async function expectImagesComplete(page: Page, selector: string) {
   const images = page.locator(selector);
@@ -211,6 +232,9 @@ test("mobile controls expose at least 44 by 44 CSS-pixel touch targets", async (
   await measure("Contact-page email link", contactLinks.nth(0));
   await measure("Contact-page phone link", contactLinks.nth(1));
   await measure("Attachment input", page.getByLabel("Drawing / specification attachment"));
+  await expect(page.getByLabel("Verification code")).toBeEnabled();
+  await measure("CAPTCHA answer input", page.getByLabel("Verification code"));
+  await measure("CAPTCHA refresh button", page.getByRole("button", { name: "Refresh" }));
   await testInfo.attach("touch-target-measurements", {
     body: JSON.stringify(measurements, null, 2),
     contentType: "application/json",
@@ -219,6 +243,7 @@ test("mobile controls expose at least 44 by 44 CSS-pixel touch targets", async (
 });
 
 test("news empty state and inquiry validation stay honest without live credentials", async ({ page }) => {
+  if (isExternalRun) await stubCaptcha(page);
   const runtimeProblems = monitorRuntime(page);
   await page.goto("/news");
   await expect(page.getByRole("status")).toContainText("No published updates yet");
@@ -236,6 +261,7 @@ test("news empty state and inquiry validation stay honest without live credentia
   await expect(page.getByRole("combobox", { name: "Product category", exact: true })).toHaveValue(/Cable management/i);
   await page.getByRole("textbox", { name: "Estimated quantity", exact: true }).fill("100 m");
   await page.getByRole("textbox", { name: "Project message", exact: true }).fill("Local browser verification only; no external submission is allowed.");
+  await page.getByLabel("Verification code").fill("TEST");
 
   let interceptedSubmissions = 0;
   await page.route("**/api/inquiries", async (route) => {

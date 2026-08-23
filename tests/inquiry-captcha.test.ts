@@ -8,7 +8,7 @@ import {
   type CaptchaChallengeConsumeRecord,
   type CaptchaChallengeIssueRecord,
   type CaptchaChallengeStore,
-} from '../lib/inquiry-captcha.ts'
+} from '../lib/inquiry-captcha'
 
 Reflect.set(process.env, 'NODE_ENV', 'test')
 
