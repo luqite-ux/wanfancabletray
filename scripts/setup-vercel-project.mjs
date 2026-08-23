@@ -4,7 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { verifySharedAdminReadiness } from "./verify-shared-admin-readiness.mjs";
+import {
+  inspectLiveSharedAdminReadiness,
+  verifySharedAdminReadiness,
+} from "./verify-shared-admin-readiness.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const TEAM_ID = "team_v0pxRIIzSUGJleUTRNSz6GS4";
@@ -109,13 +112,22 @@ export async function main(args = process.argv.slice(2), environment = process.e
   loadEnvironmentSources();
   const { mode } = parseArguments(args);
   const values = requireDeliveryValues(environment);
-  const sharedAdminReadiness = await verifySharedAdminReadiness({
-    sharedAdminRoot: environment.HUANQIU_ADMIN_ROOT || "D:/Cursor/Grand/huanqiu-admin",
-    environment,
+  const sharedAdminRoot = environment.HUANQIU_ADMIN_ROOT || "D:/Cursor/Grand/huanqiu-admin";
+  let sharedAdminReadiness = await verifySharedAdminReadiness({
+    sharedAdminRoot,
     mode: "dependency-check",
   });
+  if (mode === "apply" && sharedAdminReadiness.dependency.missingOrigins.length) {
+    throw new Error(`Shared admin dependency blocked. Missing origins: ${sharedAdminReadiness.dependency.missingOrigins.join(", ")}. Update and deploy huanqiu-admin separately before customer deployment apply.`);
+  }
+  if (mode === "apply") {
+    sharedAdminReadiness = await inspectLiveSharedAdminReadiness({
+      token: environment.VERCEL_TOKEN,
+      sharedAdminRoot,
+    });
+  }
   if (mode === "apply" && !sharedAdminReadiness.deployReady) {
-    throw new Error(`Shared admin dependency blocked. Missing origins: ${sharedAdminReadiness.dependency.missingOrigins.join(", ")}. Update huanqiu-admin separately before customer deployment apply.`);
+    throw new Error(`Shared admin dependency blocked: ${sharedAdminReadiness.dependency.issues.join(" ")}`);
   }
   if (mode === "apply") await applySetup(values, environment);
 

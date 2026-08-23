@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tenantId = "11111111-2222-4333-8444-555555555555";
 const publicBase = "https://pub-unit.r2.dev";
+const sharedAdminTeamId = "team_v0pxRIIzSUGJleUTRNSz6GS4";
+const sharedAdminProjectId = "prj_VFHYQ1BFLRFQzxAOY4m1Gdz55byM";
 
 function runScript(file, args = [], environment = {}) {
   return spawnSync(process.execPath, [file, ...args], {
@@ -37,7 +39,69 @@ function createSharedAdminFixture({ staticOrigins = [], environmentOrigins = [] 
       "utf8",
     );
   }
+  for (const args of [
+    ["init", "--initial-branch=main"],
+    ["config", "user.name", "Codex Test"],
+    ["config", "user.email", "codex-test@example.com"],
+    ["add", "next.config.mjs"],
+    ["commit", "-m", "test: shared admin config"],
+  ]) {
+    const result = spawnSync("git", args, { cwd: directory, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+  }
   return directory;
+}
+
+function sharedAdminFixtureHead(directory) {
+  const result = spawnSync("git", ["rev-parse", "HEAD"], { cwd: directory, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim();
+}
+
+function createVercelFetchFixture({ project = {}, deployments, deployment = {} } = {}) {
+  const defaultDeployment = {
+    uid: "dpl_shared_admin_production",
+    name: "huanqiu-admin",
+    projectId: sharedAdminProjectId,
+    target: "production",
+    state: "READY",
+    readyState: "READY",
+    created: 2_000,
+    meta: {
+      githubCommitSha: "fixture-commit-sha",
+      githubOrg: "luqite-ux",
+      githubRepo: "huanqiu-admin",
+      githubCommitRef: "main",
+    },
+    ...deployment,
+  };
+  const projectBody = {
+    id: sharedAdminProjectId,
+    name: "huanqiu-admin",
+    accountId: sharedAdminTeamId,
+    link: {
+      type: "github",
+      org: "luqite-ux",
+      repo: "huanqiu-admin",
+      repoId: 1233697430,
+    },
+    ...project,
+  };
+  const deploymentList = deployments ?? [defaultDeployment];
+  const requests = [];
+  return {
+    requests,
+    async fetch(input, init = {}) {
+      const url = new URL(String(input));
+      requests.push({ url: url.href, authorization: init.headers?.Authorization });
+      assert.equal(init.headers?.Authorization, "Bearer fixture-vercel-token");
+      assert.equal(url.searchParams.get("teamId"), sharedAdminTeamId);
+      if (url.pathname === `/v9/projects/${sharedAdminProjectId}`) return Response.json(projectBody);
+      if (url.pathname === "/v6/deployments") return Response.json({ deployments: deploymentList });
+      if (url.pathname === `/v13/deployments/${defaultDeployment.uid}`) return Response.json(defaultDeployment);
+      return Response.json({ error: { message: `Unexpected fixture request ${url.pathname}` } }, { status: 404 });
+    },
+  };
 }
 
 test("seed defaults to a zero-write, exact-tenant multilingual plan with public media only", () => {
@@ -258,20 +322,20 @@ test("shared-admin preflight blocks readiness until both customer origins are co
   }
 });
 
-test("shared-admin preflight accepts the two required origins from SERVER_ACTION_ALLOWED_ORIGINS", () => {
+test("shared-admin preflight rejects process and local env origin strings as deployment proof", () => {
   const sharedAdminRoot = createSharedAdminFixture({
     environmentOrigins: ["wanfancabletray.com", "www.wanfancabletray.com"],
   });
   try {
     const result = runScript("scripts/verify-shared-admin-readiness.mjs", ["--preflight", "--shared-admin-root", sharedAdminRoot], {
-      SERVER_ACTION_ALLOWED_ORIGINS: "",
+      SERVER_ACTION_ALLOWED_ORIGINS: "wanfancabletray.com,www.wanfancabletray.com",
     });
 
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.deployReady, true);
-    assert.deepEqual(report.dependency.missingOrigins, []);
-    assert.deepEqual(report.dependency.confirmedOrigins, ["wanfancabletray.com", "www.wanfancabletray.com"]);
+    assert.equal(report.deployReady, false);
+    assert.deepEqual(report.dependency.missingOrigins, ["wanfancabletray.com", "www.wanfancabletray.com"]);
+    assert.deepEqual(report.dependency.confirmedOrigins, []);
   } finally {
     fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
   }
@@ -293,6 +357,132 @@ test("shared-admin preflight does not treat commented origin names as configurat
     const report = JSON.parse(result.stdout);
     assert.equal(report.deployReady, false);
     assert.deepEqual(report.dependency.missingOrigins, ["wanfancabletray.com", "www.wanfancabletray.com"]);
+  } finally {
+    fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
+  }
+});
+
+test("live shared-admin proof rejects the wrong Vercel project or team", async () => {
+  const verifier = await import("../scripts/verify-shared-admin-readiness.mjs");
+  assert.equal(typeof verifier.inspectLiveSharedAdminReadiness, "function");
+  const sharedAdminRoot = createSharedAdminFixture({ staticOrigins: ["wanfancabletray.com", "www.wanfancabletray.com"] });
+  const commitSha = sharedAdminFixtureHead(sharedAdminRoot);
+  const deployment = {
+    meta: {
+      githubCommitSha: commitSha,
+      githubOrg: "luqite-ux",
+      githubRepo: "huanqiu-admin",
+      githubCommitRef: "main",
+    },
+  };
+  try {
+    for (const [project, issue] of [
+      [{ id: "prj_wrong_project" }, /project id/i],
+      [{ accountId: "team_wrong_scope" }, /team/i],
+    ]) {
+      const fixture = createVercelFetchFixture({ project, deployment });
+      const report = await verifier.inspectLiveSharedAdminReadiness({
+        token: "fixture-vercel-token",
+        sharedAdminRoot,
+        fetchImpl: fixture.fetch,
+      });
+      assert.equal(report.deployReady, false);
+      assert.match(report.dependency.issues.join("\n"), issue);
+      assert.equal(report.mutations, 0);
+    }
+  } finally {
+    fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
+  }
+});
+
+test("live shared-admin proof rejects preview-only deployments", async () => {
+  const { inspectLiveSharedAdminReadiness } = await import("../scripts/verify-shared-admin-readiness.mjs");
+  assert.equal(typeof inspectLiveSharedAdminReadiness, "function");
+  const sharedAdminRoot = createSharedAdminFixture({ staticOrigins: ["wanfancabletray.com", "www.wanfancabletray.com"] });
+  const commitSha = sharedAdminFixtureHead(sharedAdminRoot);
+  const fixture = createVercelFetchFixture({
+    deployments: [{
+      uid: "dpl_preview_only",
+      projectId: sharedAdminProjectId,
+      target: "preview",
+      state: "READY",
+      readyState: "READY",
+      created: 2_000,
+      meta: { githubCommitSha: commitSha, githubOrg: "luqite-ux", githubRepo: "huanqiu-admin", githubCommitRef: "main" },
+    }],
+  });
+  try {
+    const report = await inspectLiveSharedAdminReadiness({ token: "fixture-vercel-token", sharedAdminRoot, fetchImpl: fixture.fetch });
+    assert.equal(report.deployReady, false);
+    assert.match(report.dependency.issues.join("\n"), /READY Production deployment/i);
+    assert.equal(fixture.requests.some((request) => request.url.includes("/v13/deployments/")), false);
+  } finally {
+    fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
+  }
+});
+
+test("live shared-admin proof rejects a stale Production commit", async () => {
+  const { inspectLiveSharedAdminReadiness } = await import("../scripts/verify-shared-admin-readiness.mjs");
+  assert.equal(typeof inspectLiveSharedAdminReadiness, "function");
+  const sharedAdminRoot = createSharedAdminFixture({ staticOrigins: ["wanfancabletray.com", "www.wanfancabletray.com"] });
+  const fixture = createVercelFetchFixture({
+    deployment: {
+      meta: {
+        githubCommitSha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        githubOrg: "luqite-ux",
+        githubRepo: "huanqiu-admin",
+        githubCommitRef: "main",
+      },
+    },
+  });
+  try {
+    const report = await inspectLiveSharedAdminReadiness({ token: "fixture-vercel-token", sharedAdminRoot, fetchImpl: fixture.fetch });
+    assert.equal(report.deployReady, false);
+    assert.match(report.dependency.issues.join("\n"), /Production commit.*verified config commit/i);
+  } finally {
+    fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
+  }
+});
+
+test("live shared-admin proof rejects a matching Production commit missing one required origin", async () => {
+  const { inspectLiveSharedAdminReadiness } = await import("../scripts/verify-shared-admin-readiness.mjs");
+  assert.equal(typeof inspectLiveSharedAdminReadiness, "function");
+  const sharedAdminRoot = createSharedAdminFixture({ staticOrigins: ["wanfancabletray.com"] });
+  const commitSha = sharedAdminFixtureHead(sharedAdminRoot);
+  const fixture = createVercelFetchFixture({
+    deployment: {
+      meta: { githubCommitSha: commitSha, githubOrg: "luqite-ux", githubRepo: "huanqiu-admin", githubCommitRef: "main" },
+    },
+  });
+  try {
+    const report = await inspectLiveSharedAdminReadiness({ token: "fixture-vercel-token", sharedAdminRoot, fetchImpl: fixture.fetch });
+    assert.equal(report.deployReady, false);
+    assert.deepEqual(report.dependency.verifiedCommit.missingOrigins, ["www.wanfancabletray.com"]);
+    assert.match(report.dependency.issues.join("\n"), /missing required origin/i);
+  } finally {
+    fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
+  }
+});
+
+test("live shared-admin proof accepts only a matching READY Production commit with both origins", async () => {
+  const { inspectLiveSharedAdminReadiness } = await import("../scripts/verify-shared-admin-readiness.mjs");
+  assert.equal(typeof inspectLiveSharedAdminReadiness, "function");
+  const sharedAdminRoot = createSharedAdminFixture({ staticOrigins: ["wanfancabletray.com", "www.wanfancabletray.com"] });
+  const commitSha = sharedAdminFixtureHead(sharedAdminRoot);
+  const fixture = createVercelFetchFixture({
+    deployment: {
+      meta: { githubCommitSha: commitSha, githubOrg: "luqite-ux", githubRepo: "huanqiu-admin", githubCommitRef: "main" },
+    },
+  });
+  try {
+    const report = await inspectLiveSharedAdminReadiness({ token: "fixture-vercel-token", sharedAdminRoot, fetchImpl: fixture.fetch });
+    assert.equal(report.deployReady, true);
+    assert.deepEqual(report.dependency.issues, []);
+    assert.equal(report.dependency.project.id, sharedAdminProjectId);
+    assert.equal(report.dependency.project.teamId, sharedAdminTeamId);
+    assert.equal(report.dependency.productionDeployment.commitSha, commitSha);
+    assert.deepEqual(report.dependency.verifiedCommit.confirmedOrigins, ["wanfancabletray.com", "www.wanfancabletray.com"]);
+    assert.equal(fixture.requests.length, 3);
   } finally {
     fs.rmSync(sharedAdminRoot, { recursive: true, force: true });
   }

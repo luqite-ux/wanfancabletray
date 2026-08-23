@@ -52,3 +52,14 @@ Additional red/green cycles covered:
 - Confirmed the current shared `huanqiu-admin` checkout does not yet include either Wanfan origin. Per the customer-task boundary, no shared-repository file was changed; deployment apply therefore remains intentionally blocked pending a separate shared-admin task.
 
 Review TDD added focused failing-then-passing coverage for all four findings, including real child-process dry-run/preflight behavior. No live external mutation was performed.
+
+## Review fixes round 2 — 2026-08-23
+
+- Removed `.env`, `.env.local`, `_migrate-batch/.env`, and current-process `SERVER_ACTION_ALLOWED_ORIGINS` from accepted readiness evidence. The verifier now reads the exact committed `HEAD:next.config.mjs` from the configured shared-admin Git repository and evaluates it in a clean child-process environment, so working-tree comments and customer-process environment strings cannot spoof readiness.
+- Dry-run is deliberately non-authoritative: it reports either a locally blocked shared dependency or `pending-production-proof`, always with `deployReady = false` and zero mutations.
+- Added live `--preflight`/Vercel apply evidence against fixed identities only: team `team_v0pxRIIzSUGJleUTRNSz6GS4`, project `prj_VFHYQ1BFLRFQzxAOY4m1Gdz55byM` (`huanqiu-admin`), and Git repository `luqite-ux/huanqiu-admin@main`. The verifier independently validates the project response, selects a READY Production deployment, validates its detail response, and requires its Git SHA to equal the locally verified committed config SHA.
+- Vercel setup `--apply` now performs the committed-config gate and then the live Vercel proof before reaching any customer project link or environment mutation. Arbitrary evidence files and origin environment variables are not accepted.
+- Added red/green regression fixtures proving that process/local environment origins, wrong project, wrong team, preview-only deployments, stale Production commits, and a matching commit missing either origin all block. The sole passing fixture is the exact project/team plus a READY Production deployment whose SHA matches a committed config containing both domains.
+- A read-only real preflight confirmed the approved shared project/team/Git identity, but the current shared checkout commit `5e81d4107fa64abfb99900bbd22628439d125492` contains neither Wanfan origin. Delivery apply therefore remains blocked. No file in `huanqiu-admin` and no external system was mutated.
+
+Round-2 verification passed: 21 focused tests, 107 full tests, lint, typecheck, Next.js production build, all three real zero-write dry-runs, live read-only shared-admin preflight (expected blocked), and diff hygiene.
