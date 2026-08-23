@@ -3,6 +3,7 @@ import {
   createAdminLoginHandler,
   type AdminLoginDependencies,
   type AdminLoginUser,
+  updateAdminLastLogin,
 } from "@/lib/admin-login-handler";
 
 async function adminClient() {
@@ -35,9 +36,8 @@ const productionDependencies: AdminLoginDependencies = {
     });
     if (error) throw error;
   },
-  async updateLastLogin(adminUserId, timestamp) {
-    const { error } = await (await adminClient()).from("admin_users").update({ last_login_at: timestamp }).eq("id", adminUserId);
-    if (error) throw error;
+  async updateLastLogin(adminUserId, tenantId, timestamp) {
+    await updateAdminLastLogin(await adminClient(), adminUserId, tenantId, timestamp);
   },
   randomUUID: () => crypto.randomUUID(),
   now: () => new Date(),

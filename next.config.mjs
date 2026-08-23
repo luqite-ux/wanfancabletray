@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
+const approvedAdminUrl = "https://admin.globle-trade.com";
 const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
   ?.trim()
-  .replace(/[\r\n]/g, "")
   .replace(/\/$/, "");
+if (adminUrl && adminUrl !== approvedAdminUrl) {
+  throw new Error(`NEXT_PUBLIC_ADMIN_URL must equal ${approvedAdminUrl}`);
+}
 
 const nextConfig = {
   reactStrictMode: true,

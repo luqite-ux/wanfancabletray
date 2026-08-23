@@ -27,6 +27,31 @@ const PROHIBITED_TERMS = [
   /\bcart\b/i,
   /\bpayment\b/i,
 ];
+const PROTECTED_TENANT_FIELDS = [
+  "display_name",
+  "email",
+  "brand_color",
+  "logo_url",
+  "favicon_url",
+  "default_language",
+  "supported_languages",
+  "admin_group",
+  "site_title_i18n",
+  "site_tagline_i18n",
+  "site_description_i18n",
+  "contact_email",
+  "contact_phone",
+  "contact_whatsapp",
+  "contact_address_short",
+  "contact_address_i18n",
+  "social_links",
+  "seo_title_i18n",
+  "seo_description_i18n",
+  "seo_keywords_i18n",
+  "google_analytics_id",
+  "google_tag_manager_id",
+  "notes",
+];
 
 const categories = [
   ["cable-management", "Cable Management", "Cable tray and trunking systems for coordinated cable routing.", "PanelsTopLeft"],
@@ -56,6 +81,44 @@ function assertSafePlan(plan) {
     throw new Error("Database payloads may contain only stable public media URLs.");
   }
   return matches;
+}
+
+function isEmptyOrPlaceholder(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    return !normalized || /^(?:tbd|todo|placeholder|n\/?a|not set|unknown|待填写|待完善|未设置|暂无)$/i.test(normalized);
+  }
+  if (Array.isArray(value)) return value.length === 0 || value.every(isEmptyOrPlaceholder);
+  if (typeof value === "object") {
+    const entries = Object.values(value);
+    return entries.length === 0 || entries.every(isEmptyOrPlaceholder);
+  }
+  return false;
+}
+
+export function prepareTenantMutation(plannedTenant, existingTenant) {
+  if (!existingTenant) return plannedTenant;
+  const existingExtra = existingTenant.extra_settings && typeof existingTenant.extra_settings === "object" && !Array.isArray(existingTenant.extra_settings)
+    ? existingTenant.extra_settings
+    : {};
+  const plannedExtra = plannedTenant.extra_settings && typeof plannedTenant.extra_settings === "object" && !Array.isArray(plannedTenant.extra_settings)
+    ? plannedTenant.extra_settings
+    : {};
+  const manualFields = new Set(
+    (Array.isArray(existingExtra.manually_maintained_fields) ? existingExtra.manually_maintained_fields : [])
+      .filter((field) => typeof field === "string")
+      .map((field) => field.split(".")[0]),
+  );
+  const mutation = {
+    ...plannedTenant,
+    extra_settings: { ...plannedExtra, ...existingExtra },
+  };
+  for (const field of PROTECTED_TENANT_FIELDS) {
+    const existingValue = existingTenant[field];
+    if (manualFields.has(field) || !isEmptyOrPlaceholder(existingValue)) mutation[field] = existingValue;
+  }
+  return mutation;
 }
 
 export function buildSeedPlan(tenantId, databaseMedia, now = new Date()) {
@@ -185,9 +248,9 @@ function checked(result, context) {
 async function applySeedPlan(db, plan, password) {
   const tenantId = plan.tenant.id;
   const [tenantByIdResult, tenantByDomainResult, adminResult] = await Promise.all([
-    db.from("tenants").select("id,domain").eq("id", tenantId).maybeSingle(),
+    db.from("tenants").select("*").eq("id", tenantId).maybeSingle(),
     db.from("tenants").select("id,domain").eq("domain", DOMAIN).maybeSingle(),
-    db.from("admin_users").select("id,email,tenant_id").eq("email", ADMIN_EMAIL).maybeSingle(),
+    db.from("admin_users").select("id,email,tenant_id,admin_group").eq("email", ADMIN_EMAIL).maybeSingle(),
   ]);
   const tenantById = checked(tenantByIdResult, "Tenant ID preflight");
   const tenantByDomain = checked(tenantByDomainResult, "Tenant domain preflight");
@@ -197,10 +260,11 @@ async function applySeedPlan(db, plan, password) {
   if (existingAdmin && existingAdmin.tenant_id !== tenantId) throw new Error(`${ADMIN_EMAIL} belongs to another tenant.`);
 
   const passwordHash = await bcrypt.hash(password, 12);
+  const tenantMutation = prepareTenantMutation(plan.tenant, tenantById);
   if (tenantById) {
-    checked(await db.from("tenants").update(plan.tenant).eq("id", tenantId).eq("domain", DOMAIN), "Tenant update");
+    checked(await db.from("tenants").update(tenantMutation).eq("id", tenantId).eq("domain", DOMAIN), "Tenant update");
   } else {
-    checked(await db.from("tenants").insert({ ...plan.tenant, password_hash: passwordHash }), "Tenant insert");
+    checked(await db.from("tenants").insert({ ...tenantMutation, password_hash: passwordHash }), "Tenant insert");
   }
   for (const category of plan.categories) {
     checked(await db.from("product_categories").upsert(category, { onConflict: "tenant_id,slug" }), `Category ${category.slug}`);
@@ -208,10 +272,11 @@ async function applySeedPlan(db, plan, password) {
   for (const product of plan.products) {
     checked(await db.from("products").upsert(product, { onConflict: "tenant_id,slug" }), `Product ${product.slug}`);
   }
+  const adminMutation = { ...plan.admin, admin_group: tenantMutation.admin_group };
   if (existingAdmin) {
-    checked(await db.from("admin_users").update(plan.admin).eq("id", existingAdmin.id).eq("tenant_id", tenantId), "Administrator update");
+    checked(await db.from("admin_users").update(adminMutation).eq("id", existingAdmin.id).eq("tenant_id", tenantId), "Administrator update");
   } else {
-    checked(await db.from("admin_users").insert({ ...plan.admin, password_hash: passwordHash }), "Administrator insert");
+    checked(await db.from("admin_users").insert({ ...adminMutation, password_hash: passwordHash }), "Administrator insert");
   }
 
   const [tenantRead, categoriesRead, productsRead, adminRead] = await Promise.all([
@@ -226,8 +291,8 @@ async function applySeedPlan(db, plan, password) {
     products: checked(productsRead, "Product readback"),
     admin: checked(adminRead, "Administrator readback"),
   };
-  if (readback.tenant.id !== tenantId || readback.tenant.domain !== DOMAIN || readback.tenant.admin_group !== 2) throw new Error("Tenant readback scope mismatch.");
-  if (readback.admin.tenant_id !== tenantId || readback.admin.admin_group !== 2) throw new Error("Administrator readback scope mismatch.");
+  if (readback.tenant.id !== tenantId || readback.tenant.domain !== DOMAIN || readback.tenant.admin_group !== tenantMutation.admin_group) throw new Error("Tenant readback scope mismatch.");
+  if (readback.admin.tenant_id !== tenantId || readback.admin.admin_group !== tenantMutation.admin_group) throw new Error("Administrator readback scope mismatch.");
   if (readback.categories.length !== plan.categories.length || readback.categories.some((row) => row.tenant_id !== tenantId)) throw new Error("Category readback scope mismatch.");
   if (readback.products.length !== plan.products.length || readback.products.some((row) => row.tenant_id !== tenantId || !/^https:\/\/pub-[^.]+\.r2\.dev\//i.test(row.image_url))) throw new Error("Product readback scope or media mismatch.");
   assertSafePlan(readback);

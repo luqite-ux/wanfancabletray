@@ -4,10 +4,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import { verifySharedAdminReadiness } from "./verify-shared-admin-readiness.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const TEAM_ID = "team_v0pxRIIzSUGJleUTRNSz6GS4";
 const PROJECT_NAME = "wanfancabletray";
+const APPROVED_ADMIN_URL = "https://admin.globle-trade.com";
 const ENVIRONMENTS = ["production", "preview", "development"];
 const ENVIRONMENT_KEYS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -56,7 +58,9 @@ function requireDeliveryValues(environment) {
     values[key] = value;
   }
   if (!/^https:\/\//i.test(values.NEXT_PUBLIC_SUPABASE_URL)) throw new Error("NEXT_PUBLIC_SUPABASE_URL must use HTTPS.");
-  if (!/^https:\/\//i.test(values.NEXT_PUBLIC_ADMIN_URL)) throw new Error("NEXT_PUBLIC_ADMIN_URL must use HTTPS.");
+  const adminUrl = values.NEXT_PUBLIC_ADMIN_URL.replace(/\/$/, "");
+  if (adminUrl !== APPROVED_ADMIN_URL) throw new Error(`NEXT_PUBLIC_ADMIN_URL must equal ${APPROVED_ADMIN_URL}.`);
+  values.NEXT_PUBLIC_ADMIN_URL = adminUrl;
   return values;
 }
 
@@ -105,6 +109,14 @@ export async function main(args = process.argv.slice(2), environment = process.e
   loadEnvironmentSources();
   const { mode } = parseArguments(args);
   const values = requireDeliveryValues(environment);
+  const sharedAdminReadiness = await verifySharedAdminReadiness({
+    sharedAdminRoot: environment.HUANQIU_ADMIN_ROOT || "D:/Cursor/Grand/huanqiu-admin",
+    environment,
+    mode: "dependency-check",
+  });
+  if (mode === "apply" && !sharedAdminReadiness.deployReady) {
+    throw new Error(`Shared admin dependency blocked. Missing origins: ${sharedAdminReadiness.dependency.missingOrigins.join(", ")}. Update huanqiu-admin separately before customer deployment apply.`);
+  }
   if (mode === "apply") await applySetup(values, environment);
 
   return {
@@ -114,6 +126,8 @@ export async function main(args = process.argv.slice(2), environment = process.e
     projectName: PROJECT_NAME,
     cliBootstrap: "pnpm dlx vercel@latest",
     link: { explicit: true, project: PROJECT_NAME, teamId: TEAM_ID },
+    deployReady: sharedAdminReadiness.deployReady,
+    sharedAdminDependency: sharedAdminReadiness.dependency,
     environments: ENVIRONMENTS,
     environmentVariables: ENVIRONMENT_KEYS.map((name) => ({
       name,

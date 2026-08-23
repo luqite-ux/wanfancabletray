@@ -37,7 +37,7 @@ test("admin login handler writes proxy cookies and returns a native 303 document
       return true;
     },
     createSession: async (session) => calls.push({ kind: "createSession", session }),
-    updateLastLogin: async (adminUserId, timestamp) => calls.push({ kind: "updateLastLogin", adminUserId, timestamp }),
+    updateLastLogin: async (adminUserId, requestedTenantId, timestamp) => calls.push({ kind: "updateLastLogin", adminUserId, tenantId: requestedTenantId, timestamp }),
     randomUUID: () => "session-token",
     now: () => new Date("2030-01-02T03:04:05.000Z"),
     environment: {
@@ -73,6 +73,12 @@ test("admin login handler writes proxy cookies and returns a native 303 document
     tenantId,
   });
   assert.equal(calls.find((call) => call.kind === "createSession").session.tenantId, tenantId);
+  assert.deepEqual(calls.find((call) => call.kind === "updateLastLogin"), {
+    kind: "updateLastLogin",
+    adminUserId: "admin-1",
+    tenantId,
+    timestamp: "2030-01-02T03:04:05.000Z",
+  });
 });
 
 test("admin login failures remain native 303 redirects and do not require an external request", async () => {
@@ -110,6 +116,45 @@ test("admin login failures remain native 303 redirects and do not require an ext
   }
 });
 
+test("last-login persistence updates only the authenticated tenant row", async () => {
+  const { updateAdminLastLogin } = await import("../lib/admin-login-handler.ts");
+  assert.equal(typeof updateAdminLastLogin, "function");
+
+  const rows = [
+    { id: "admin-1", tenant_id: tenantId, last_login_at: null },
+    { id: "admin-1", tenant_id: "99999999-8888-4777-8666-555555555555", last_login_at: null },
+  ];
+  const client = {
+    from(table) {
+      assert.equal(table, "admin_users");
+      const filters = [];
+      let changes = {};
+      const query = {
+        update(payload) {
+          changes = payload;
+          return query;
+        },
+        eq(column, value) {
+          filters.push([column, value]);
+          return query;
+        },
+        then(resolve, reject) {
+          for (const row of rows) {
+            if (filters.every(([column, value]) => row[column] === value)) Object.assign(row, changes);
+          }
+          return Promise.resolve({ error: null }).then(resolve, reject);
+        },
+      };
+      return query;
+    },
+  };
+
+  await updateAdminLastLogin(client, "admin-1", tenantId, "2030-01-02T03:04:05.000Z");
+
+  assert.equal(rows[0].last_login_at, "2030-01-02T03:04:05.000Z");
+  assert.equal(rows[1].last_login_at, null);
+});
+
 test("Next rewrites proxy only admin paths through the configured admin origin", async () => {
   const original = process.env.NEXT_PUBLIC_ADMIN_URL;
   process.env.NEXT_PUBLIC_ADMIN_URL = " https://admin.globle-trade.com/\r\n";
@@ -123,6 +168,20 @@ test("Next rewrites proxy only admin paths through the configured admin origin",
         { source: "/api/admin/:path*", destination: "https://admin.globle-trade.com/api/admin/:path*" },
       ],
     });
+  } finally {
+    if (original === undefined) delete process.env.NEXT_PUBLIC_ADMIN_URL;
+    else process.env.NEXT_PUBLIC_ADMIN_URL = original;
+  }
+});
+
+test("Next rewrites reject every unapproved HTTPS admin origin", async () => {
+  const original = process.env.NEXT_PUBLIC_ADMIN_URL;
+  process.env.NEXT_PUBLIC_ADMIN_URL = "https://attacker.example";
+  try {
+    await assert.rejects(
+      import(`../next.config.mjs?admin-origin-rejection=${Date.now()}`),
+      /NEXT_PUBLIC_ADMIN_URL must equal https:\/\/admin\.globle-trade\.com/,
+    );
   } finally {
     if (original === undefined) delete process.env.NEXT_PUBLIC_ADMIN_URL;
     else process.env.NEXT_PUBLIC_ADMIN_URL = original;

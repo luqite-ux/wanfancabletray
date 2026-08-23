@@ -33,9 +33,37 @@ export interface AdminLoginDependencies {
   findUser(email: string, tenantId: string): Promise<AdminLoginUser | null>;
   comparePassword(plain: string, passwordHash: string): Promise<boolean>;
   createSession(session: AdminSessionInput): Promise<void>;
-  updateLastLogin(adminUserId: string, timestamp: string): Promise<void>;
+  updateLastLogin(adminUserId: string, tenantId: string, timestamp: string): Promise<void>;
   randomUUID(): string;
   now(): Date;
+}
+
+interface AdminUpdateResult {
+  error: { message?: string } | null;
+}
+
+interface AdminUpdateQuery extends PromiseLike<AdminUpdateResult> {
+  eq(column: string, value: string): AdminUpdateQuery;
+}
+
+export interface AdminUpdateClient {
+  from(table: "admin_users"): {
+    update(payload: { last_login_at: string }): AdminUpdateQuery;
+  };
+}
+
+export async function updateAdminLastLogin(
+  client: AdminUpdateClient,
+  adminUserId: string,
+  tenantId: string,
+  timestamp: string,
+) {
+  const { error } = await client
+    .from("admin_users")
+    .update({ last_login_at: timestamp })
+    .eq("id", adminUserId)
+    .eq("tenant_id", tenantId);
+  if (error) throw new Error(error.message || "Unable to update administrator login time.");
 }
 
 function loginError(request: Request, message: string) {
@@ -84,7 +112,7 @@ export function createAdminLoginHandler(dependencies: AdminLoginDependencies) {
         ip: (request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "").split(",")[0].trim(),
         userAgent: request.headers.get("user-agent") || "",
       });
-      await dependencies.updateLastLogin(user.id, issuedAt.toISOString());
+      await dependencies.updateLastLogin(user.id, tenantId, issuedAt.toISOString());
 
       const response = NextResponse.redirect(new URL("/admin", request.url), 303);
       const cookieOptions = {

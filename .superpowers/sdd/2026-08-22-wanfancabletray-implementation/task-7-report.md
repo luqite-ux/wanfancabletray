@@ -41,3 +41,14 @@ Additional red/green cycles covered:
 - R2 apply requires the R2 S3 credentials and public `pub-*.r2.dev` base; its completed manifest is written outside the repository by default.
 - Seed apply requires that completed R2 manifest, service-role Supabase credentials, and `ADMIN_INITIAL_PASSWORD` from the environment. The plaintext password is not stored in source or emitted.
 - Vercel apply requires `VERCEL_TOKEN` in the environment. It is not printed or included in CLI arguments.
+
+## Review fixes — 2026-08-23
+
+- Tenant-scoped the `last_login_at` mutation by both administrator ID and `tenant_id`. The handler now carries the authenticated tenant through the persistence boundary, and an in-memory repository test proves that a same-ID row in another tenant is unchanged.
+- Added existing-tenant rerun protection. The seed now reads the complete existing tenant row, retains all meaningful site settings, treats empty and obvious placeholder values as fillable, honors `extra_settings.manually_maintained_fields` even when the protected value is empty, preserves existing source and revision metadata, and merges only missing initialization metadata. Existing tenant/admin grouping is also preserved on rerun.
+- Restricted `NEXT_PUBLIC_ADMIN_URL` to the sole approved normalized value `https://admin.globle-trade.com` in both Next rewrites and Vercel environment setup. Other HTTPS origins fail before rewrites or delivery mutations.
+- Added `scripts/verify-shared-admin-readiness.mjs` as a read-only, separately owned dependency artifact. It requires both `wanfancabletray.com` and `www.wanfancabletray.com` in the shared admin's static `allowedOrigins` or `SERVER_ACTION_ALLOWED_ORIGINS`, reports zero mutations, and fails `--preflight` when either origin is absent.
+- Integrated that dependency into Vercel readiness. Dry-run exposes `deployReady` and the full separate dependency record; `--apply` fails before Vercel token/CLI handling until the shared admin is confirmed ready.
+- Confirmed the current shared `huanqiu-admin` checkout does not yet include either Wanfan origin. Per the customer-task boundary, no shared-repository file was changed; deployment apply therefore remains intentionally blocked pending a separate shared-admin task.
+
+Review TDD added focused failing-then-passing coverage for all four findings, including real child-process dry-run/preflight behavior. No live external mutation was performed.
