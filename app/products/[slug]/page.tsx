@@ -5,6 +5,7 @@ import { ArrowLeft, Check, ClipboardCheck, Layers3, Ruler, Settings2 } from "luc
 import { InquiryCta } from "@/components/inquiry-cta";
 import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
+import { buildPageMetadata, buildProductJsonLd } from "@/lib/metadata";
 import { getProductBySlug, getProducts } from "@/lib/products-db";
 import { company } from "@/lib/site-data";
 
@@ -14,8 +15,6 @@ interface ProductDetailPageProps {
 
 export const revalidate = 60;
 export const dynamicParams = true;
-const siteOrigin = `https://${company.domain}`;
-
 export async function generateStaticParams() {
   const products = await getProducts(company.defaultLocale);
   return products.map(({ slug }) => ({ slug }));
@@ -27,20 +26,13 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 
   if (!product) return { title: "Product not found" };
 
-  const url = `${siteOrigin}/products/${product.slug}`;
-  const socialImage = new URL(product.image, siteOrigin).toString();
-  return {
+  return buildPageMetadata({
     title: `${product.name} | ${company.brand}`,
     description: product.description,
-    alternates: { canonical: url },
-    openGraph: {
-      title: `${product.name} | ${company.brand}`,
-      description: product.description,
-      type: "website",
-      url,
-      images: [{ url: socialImage, alt: product.imageAlt }],
-    },
-  };
+    path: `/products/${product.slug}`,
+    image: product.image,
+    imageAlt: product.imageAlt,
+  });
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -56,16 +48,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const fallbackRelated = relatedProducts.length
     ? relatedProducts
     : products.filter((candidate) => candidate.slug !== product.slug).slice(0, 3);
-  const productJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    image: product.gallery.map(({ src }) => new URL(src, siteOrigin).toString()),
-    category: product.family,
-    brand: { "@type": "Brand", name: company.brand },
-    manufacturer: { "@type": "Organization", name: company.publicName },
-  };
+  const productJsonLd = buildProductJsonLd(product);
 
   return (
     <main className="product-detail-page">

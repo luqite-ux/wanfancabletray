@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import { Building2, Factory, GraduationCap, Landmark, Network, SunMedium } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import { buildPageMetadata } from "@/lib/metadata";
 import { company } from "@/lib/site-data";
 
 const pageTitle = `Application Solutions | ${company.brand}`;
 const pageDescription = "Application pathways for cable-management and structural-support project requirements.";
-const pageUrl = `https://${company.domain}/solutions`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/solutions",
+});
 
 const applications = [
   { icon: Building2, title: "Commercial buildings", text: "Coordinate cable-management routes with drawings, installation zones, and material requirements." },

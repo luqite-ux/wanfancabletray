@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Building2, CheckCircle2, ClipboardCheck, Factory, FileSearch, HardHat, Layers3, School, SunMedium, Truck, Waypoints } from "lucide-react";
@@ -7,8 +8,18 @@ import { HeroCarousel } from "@/components/hero-carousel";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
+import { formatPublishedDate, listPublishedArticles } from "@/lib/articles-db";
 import { homepageProducts, materialOptions } from "@/lib/home-content";
+import { buildOrganizationJsonLd, buildPageMetadata } from "@/lib/metadata";
 import { cableTrayMaterials, company, faqItems, productFamilies, productionFacts } from "@/lib/site-data";
+
+export const revalidate = 60;
+
+export const metadata: Metadata = buildPageMetadata({
+  title: `${company.brand} | Cable Management and Structural Support Manufacturing`,
+  description: "Cable-management and structural-support manufacturing coordinated around confirmed drawings and project requirements.",
+  path: "/",
+});
 
 const applications = [
   { icon: Building2, title: "Commercial buildings", text: "Organized cable routing and support across coordinated building services." },
@@ -28,11 +39,13 @@ const manufacturingSteps = [
   { icon: Truck, title: "Shipment", text: "Coordinate dispatch details and delivery documentation with your team." },
 ];
 
-const publishedArticles: Array<{ title: string; date: string; excerpt: string }> = [];
+export default async function HomePage() {
+  const publishedArticles = await listPublishedArticles(company.defaultLocale, 3);
+  const organizationJsonLd = buildOrganizationJsonLd();
 
-export default function HomePage() {
   return (
     <main className="home-page">
+      <script dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" />
       <section id="hero" aria-label="Wanfan introduction"><HeroCarousel /></section>
 
       <section className="content-section metrics-section" id="metrics" aria-label="Manufacturing facts">
@@ -97,7 +110,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.title}><time>{article.date}</time><h3>{article.title}</h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
+      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.slug}><time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt)}</time><h3><Link href={`/news/${article.slug}`}>{article.title}</Link></h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
 
       <section className="inquiry-banner" id="inquiry" aria-labelledby="inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Start your project discussion</p><h2 id="inquiry-heading">Bring your drawing, quantity, and target application.</h2><p>Our inquiry workflow is ready for the project details your team needs to share.</p></div><InquiryCta label="Request a Quote" /></div></section>
       <p className="sr-only">Available product families include {productFamilies.map((family) => family.name.en).join(", ")}.</p>

@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Boxes, ClipboardCheck, Factory, FileSearch, PackageCheck, Settings2 } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import { buildPageMetadata } from "@/lib/metadata";
 import { company, productionFacts } from "@/lib/site-data";
 
 const pageTitle = `Manufacturing | ${company.brand}`;
 const pageDescription = "Drawing-led manufacturing coordination for Wanfan cable-management and structural-support products.";
-const pageUrl = `https://${company.domain}/manufacturing`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/manufacturing",
+});
 
 const steps = [
   { icon: FileSearch, title: "Drawing review", text: "Review geometry, interfaces, quantity, and application requirements." },

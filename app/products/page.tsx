@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProductsClient } from "@/app/products/products-client";
+import { buildPageMetadata } from "@/lib/metadata";
 import { getProducts, productCategories } from "@/lib/products-db";
 import { company } from "@/lib/site-data";
 
@@ -7,14 +8,11 @@ export const revalidate = 60;
 
 const pageTitle = `Products | ${company.brand}`;
 const pageDescription = "Explore Wanfan cable-management, structural-support, conduit, and stainless-component product families.";
-const pageUrl = `https://${company.domain}/products`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/products",
+});
 
 export default async function ProductsPage() {
   const products = await getProducts(company.defaultLocale);

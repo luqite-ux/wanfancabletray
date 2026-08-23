@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import { ClipboardList, Eye, PackageCheck, Ruler, ScanSearch, ShieldCheck } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import { buildPageMetadata } from "@/lib/metadata";
 import { company } from "@/lib/site-data";
 
 const pageTitle = `Quality Process | ${company.brand}`;
 const pageDescription = "Order-specific checks for materials, dimensions, process requirements, and dispatch preparation.";
-const pageUrl = `https://${company.domain}/quality`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/quality",
+});
 
 const checkpoints = [
   { icon: ClipboardList, title: "Requirement record", text: "Keep confirmed drawings, dimensions, materials, surfaces, and quantity visible to the production team." },

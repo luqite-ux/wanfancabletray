@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Factory, FileCheck2, MapPin, MessagesSquare } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import { buildPageMetadata } from "@/lib/metadata";
 import { company, formatTrademarkRegistrations, productionFacts, trademarkRegistrations } from "@/lib/site-data";
 
 const pageTitle = `About Wanfan | ${company.brand}`;
 const pageDescription = `Learn about ${company.publicName} and its project-focused manufacturing approach.`;
-const pageUrl = `https://${company.domain}/about`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

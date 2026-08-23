@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { buildPageMetadata, siteOrigin } from "@/lib/metadata";
 import { company } from "@/lib/site-data";
 
 const geistSans = Geist({
@@ -17,8 +18,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: company.publicName,
-  description: "Cable-management and structural-support manufacturing for project requirements.",
+  metadataBase: new URL(siteOrigin),
+  ...buildPageMetadata({
+    title: company.publicName,
+    description: "Cable-management and structural-support manufacturing for project requirements.",
+    path: "/",
+  }),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

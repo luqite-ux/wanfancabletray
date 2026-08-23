@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import { HelpCircle, Mail } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { resolveLocalizedText } from "@/lib/localization";
+import { buildPageMetadata } from "@/lib/metadata";
 import { cableTrayMaterials, company, faqItems } from "@/lib/site-data";
 
 const pageTitle = `Frequently Asked Questions | ${company.brand}`;
 const pageDescription = "Verified answers about Wanfan materials, thicknesses, drawings, production timing, and inquiry preparation.";
-const pageUrl = `https://${company.domain}/faq`;
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: pageTitle,
   description: pageDescription,
-  alternates: { canonical: pageUrl },
-  openGraph: { title: pageTitle, description: pageDescription, type: "website", url: pageUrl },
-};
+  path: "/faq",
+});
 
 const additionalFaqs = [
   { question: "Which details should I include in an inquiry?", answer: "Include the product category, estimated quantity, application, available drawings or dimensions, material direction, surface requirement, and target delivery context." },
