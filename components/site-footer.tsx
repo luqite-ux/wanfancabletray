@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { InquiryCta } from "@/components/inquiry-cta";
+import type { SiteLocale } from "@/lib/localization";
+import { localizePath } from "@/lib/locale-routing";
 import {
   buildCopyright,
   chromeCopy,
@@ -10,22 +12,22 @@ import {
   publicCopy,
 } from "@/lib/site-data";
 
-export function SiteFooter() {
+export function SiteFooter({ locale = company.defaultLocale }: { locale?: SiteLocale }) {
   return (
     <footer className="site-footer">
       <div className="site-footer__grid">
         <div className="site-footer__brand">
-          <Link aria-label={`${company.brand} home`} className="site-footer__logo" href="/">
+          <Link aria-label={`${company.brand} home`} className="site-footer__logo" href={localizePath("/", locale, company.defaultLocale)}>
             <Image alt={`${company.brand} logo`} height={70} src="/assets/brand/logo.png" width={78} />
           </Link>
           <p>{publicCopy.companyDescription}</p>
-          <InquiryCta label={chromeCopy.footer.startInquiry} />
+          <InquiryCta label={chromeCopy.footer.startInquiry} locale={locale} />
         </div>
         <div>
           <p className="footer-heading">{chromeCopy.footer.explore}</p>
           <nav aria-label={chromeCopy.footer.navigationLabel} className="footer-navigation">
             {primaryNavigation.slice(0, -1).map((item) => (
-              <Link href={item.href} key={item.href}>{item.label}</Link>
+              <Link href={localizePath(item.href, locale, company.defaultLocale)} key={item.href}>{item.label}</Link>
             ))}
           </nav>
         </div>

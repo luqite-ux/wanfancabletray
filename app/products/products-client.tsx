@@ -2,14 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/product-card";
+import type { SiteLocale } from "@/lib/localization";
 import type { ProductCategory, ProductView } from "@/lib/products-db";
 
 interface ProductsClientProps {
   categories: ProductCategory[];
   products: ProductView[];
+  locale: SiteLocale;
 }
 
-export function ProductsClient({ categories, products }: ProductsClientProps) {
+export function ProductsClient({ categories, products, locale }: ProductsClientProps) {
   const [activeCategory, setActiveCategory] = useState("all");
   const visibleProducts = useMemo(
     () => activeCategory === "all" ? products : products.filter((product) => product.categorySlug === activeCategory),
@@ -33,7 +35,7 @@ export function ProductsClient({ categories, products }: ProductsClientProps) {
       </div>
       <p aria-live="polite" className="product-results-status">Showing {visibleProducts.length} {visibleProducts.length === 1 ? "product family" : "product families"}.</p>
       <div className="product-grid product-catalog__grid" id="product-results">
-        {visibleProducts.map((product) => <ProductCard key={product.slug} product={product} />)}
+        {visibleProducts.map((product) => <ProductCard key={product.slug} locale={locale} product={product} />)}
       </div>
     </div>
   );

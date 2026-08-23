@@ -88,11 +88,12 @@ test("independent listing and company routes expose unique canonical and Open Gr
   const titles = [];
   for (const [index, routeModule] of modules.entries()) {
     const expectedUrl = `https://wanfancabletray.com/${routeNames[index]}`;
-    assert.equal(routeModule.metadata.alternates.canonical, expectedUrl);
-    assert.equal(routeModule.metadata.openGraph.url, expectedUrl);
-    assert.equal(routeModule.metadata.openGraph.title, routeModule.metadata.title);
-    assert.equal(routeModule.metadata.openGraph.description, routeModule.metadata.description);
-    titles.push(routeModule.metadata.title);
+    const metadata = await routeModule.generateMetadata();
+    assert.equal(metadata.alternates.canonical, expectedUrl);
+    assert.equal(metadata.openGraph.url, expectedUrl);
+    assert.equal(metadata.openGraph.title, metadata.title);
+    assert.equal(metadata.openGraph.description, metadata.description);
+    titles.push(metadata.title);
   }
 
   assert.equal(new Set(titles).size, routeNames.length);

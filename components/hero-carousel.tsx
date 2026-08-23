@@ -5,6 +5,9 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { CAROUSEL_INTERVAL_MS, getCarouselProgress, pauseCarouselClock, resetCarouselClock, startCarouselClock, type CarouselClock } from "@/lib/carousel-timing";
+import type { SiteLocale } from "@/lib/localization";
+import { localizePath } from "@/lib/locale-routing";
+import { company } from "@/lib/site-data";
 
 export const heroSlides = [
   {
@@ -36,7 +39,7 @@ export const heroSlides = [
   },
 ] as const;
 
-export function HeroCarousel() {
+export function HeroCarousel({ locale = company.defaultLocale }: { locale?: SiteLocale }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isUserPaused, setIsUserPaused] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -136,8 +139,8 @@ export function HeroCarousel() {
         <h1>{activeSlide.title}</h1>
         <p className="hero-carousel__description">{activeSlide.description}</p>
         <div className="hero-carousel__ctas">
-          <InquiryCta label={activeSlide.primaryCta.label} />
-          <Link className="secondary-cta" href={activeSlide.secondaryCta.href}>{activeSlide.secondaryCta.label}</Link>
+          <InquiryCta label={activeSlide.primaryCta.label} locale={locale} />
+          <Link className="secondary-cta" href={localizePath(activeSlide.secondaryCta.href, locale, company.defaultLocale)}>{activeSlide.secondaryCta.label}</Link>
         </div>
       </div>
       <div className="hero-carousel__controls" aria-label="Carousel controls">

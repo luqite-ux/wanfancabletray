@@ -2,20 +2,27 @@ import type { Metadata } from "next";
 import { ProductsClient } from "@/app/products/products-client";
 import { buildPageMetadata } from "@/lib/metadata";
 import { getProducts, productCategories } from "@/lib/products-db";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 export const revalidate = 60;
 
 const pageTitle = `Products | ${company.brand}`;
 const pageDescription = "Explore Wanfan cable-management, structural-support, conduit, and stainless-component product families.";
-export const metadata: Metadata = buildPageMetadata({
-  title: pageTitle,
-  description: pageDescription,
-  path: "/products",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return buildPageMetadata({
+    title: pageTitle,
+    description: pageDescription,
+    path: "/products",
+    locale,
+    supportedLocales,
+  });
+}
 
 export default async function ProductsPage() {
-  const products = await getProducts(company.defaultLocale);
+  const { locale } = await getRequestLocaleContext();
+  const products = await getProducts(locale);
 
   return (
     <main className="products-page">
@@ -27,7 +34,7 @@ export default async function ProductsPage() {
       </section>
       <section className="content-section product-catalog" aria-label="Product catalog">
         <div className="page-container">
-          <ProductsClient categories={productCategories} products={products} />
+          <ProductsClient categories={productCategories} locale={locale} products={products} />
         </div>
       </section>
     </main>

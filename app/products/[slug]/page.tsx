@@ -6,7 +6,9 @@ import { InquiryCta } from "@/components/inquiry-cta";
 import { ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
 import { buildPageMetadata, buildProductJsonLd } from "@/lib/metadata";
+import { localizePath } from "@/lib/locale-routing";
 import { getProductBySlug, getProducts } from "@/lib/products-db";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 interface ProductDetailPageProps {
@@ -15,14 +17,16 @@ interface ProductDetailPageProps {
 
 export const revalidate = 60;
 export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 export async function generateStaticParams() {
-  const products = await getProducts(company.defaultLocale);
+  const products = await getProducts();
   return products.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug, company.defaultLocale);
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  const product = await getProductBySlug(slug, locale);
 
   if (!product) return { title: "Product not found" };
 
@@ -32,12 +36,15 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
     path: `/products/${product.slug}`,
     image: product.image,
     imageAlt: product.imageAlt,
+    locale,
+    supportedLocales,
   });
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { slug } = await params;
-  const products = await getProducts(company.defaultLocale);
+  const { locale } = await getRequestLocaleContext();
+  const products = await getProducts(locale);
   const product = products.find((candidate) => candidate.slug === slug) || null;
 
   if (!product) notFound();
@@ -48,14 +55,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const fallbackRelated = relatedProducts.length
     ? relatedProducts
     : products.filter((candidate) => candidate.slug !== product.slug).slice(0, 3);
-  const productJsonLd = buildProductJsonLd(product);
+  const productJsonLd = buildProductJsonLd(product, locale);
 
   return (
     <main className="product-detail-page">
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" />
       <section className="product-detail-hero" aria-labelledby="product-title">
         <div className="page-container">
-          <Link className="back-link" href="/products"><ArrowLeft aria-hidden="true" size={18} /> Back to products</Link>
+          <Link className="back-link" href={localizePath("/products", locale, company.defaultLocale)}><ArrowLeft aria-hidden="true" size={18} /> Back to products</Link>
           <div className="product-detail-hero__grid">
             <ProductGallery images={product.gallery} productName={product.name} />
             <div className="product-detail-hero__copy">
@@ -63,8 +70,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <h1 id="product-title">{product.name}</h1>
               <p>{product.description}</p>
               <div className="product-detail-hero__actions">
-                <InquiryCta label="Request a Product Quote" productSlug={product.slug} />
-                <InquiryCta className="secondary-light-cta" label="Discuss Product Requirements" productSlug={product.slug} />
+                <InquiryCta label="Request a Product Quote" locale={locale} productSlug={product.slug} />
+                <InquiryCta className="secondary-light-cta" label="Discuss Product Requirements" locale={locale} productSlug={product.slug} />
               </div>
             </div>
           </div>
@@ -112,11 +119,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       <section className="content-section related-products" aria-labelledby="related-heading">
         <div className="page-container">
           <p className="eyebrow">Continue exploring</p><h2 id="related-heading">Related products</h2>
-          <div className="product-grid">{fallbackRelated.map((related) => <ProductCard key={related.slug} product={related} />)}</div>
+          <div className="product-grid">{fallbackRelated.map((related) => <ProductCard key={related.slug} locale={locale} product={related} />)}</div>
         </div>
       </section>
 
-      <section className="inquiry-banner" aria-labelledby="product-inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Discuss this product</p><h2 id="product-inquiry-heading">Share drawings, dimensions, quantity, and application details.</h2><p>Product context will be included when you open the inquiry form.</p></div><InquiryCta label="Request a Product Quote" productSlug={product.slug} /></div></section>
+      <section className="inquiry-banner" aria-labelledby="product-inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Discuss this product</p><h2 id="product-inquiry-heading">Share drawings, dimensions, quantity, and application details.</h2><p>Product context will be included when you open the inquiry form.</p></div><InquiryCta label="Request a Product Quote" locale={locale} productSlug={product.slug} /></div></section>
     </main>
   );
 }

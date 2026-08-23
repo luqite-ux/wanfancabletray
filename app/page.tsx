@@ -10,16 +10,24 @@ import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
 import { formatPublishedDate, listPublishedArticles } from "@/lib/articles-db";
 import { homepageProducts, materialOptions } from "@/lib/home-content";
+import { resolveLocalizedList, resolveLocalizedText } from "@/lib/localization";
+import { localizePath } from "@/lib/locale-routing";
 import { buildOrganizationJsonLd, buildPageMetadata } from "@/lib/metadata";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { cableTrayMaterials, company, faqItems, productFamilies, productionFacts } from "@/lib/site-data";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = buildPageMetadata({
-  title: `${company.brand} | Cable Management and Structural Support Manufacturing`,
-  description: "Cable-management and structural-support manufacturing coordinated around confirmed drawings and project requirements.",
-  path: "/",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return buildPageMetadata({
+    title: `${company.brand} | Cable Management and Structural Support Manufacturing`,
+    description: "Cable-management and structural-support manufacturing coordinated around confirmed drawings and project requirements.",
+    path: "/",
+    locale,
+    supportedLocales,
+  });
+}
 
 const applications = [
   { icon: Building2, title: "Commercial buildings", text: "Organized cable routing and support across coordinated building services." },
@@ -40,13 +48,19 @@ const manufacturingSteps = [
 ];
 
 export default async function HomePage() {
-  const publishedArticles = await listPublishedArticles(company.defaultLocale, 3);
+  const { locale } = await getRequestLocaleContext();
+  const publishedArticles = await listPublishedArticles(locale, 3);
   const organizationJsonLd = buildOrganizationJsonLd();
+  const localizedMaterials = resolveLocalizedList(cableTrayMaterials, locale, company.defaultLocale);
+  const localizedFaqs = faqItems.map((item) => ({
+    question: resolveLocalizedText(item.question, locale, company.defaultLocale),
+    answer: resolveLocalizedText(item.answer, locale, company.defaultLocale),
+  }));
 
   return (
     <main className="home-page">
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" />
-      <section id="hero" aria-label="Wanfan introduction"><HeroCarousel /></section>
+      <section id="hero" aria-label="Wanfan introduction"><HeroCarousel locale={locale} /></section>
 
       <section className="content-section metrics-section" id="metrics" aria-label="Manufacturing facts">
         <div className="page-container">
@@ -63,8 +77,8 @@ export default async function HomePage() {
       <section className="content-section product-section" id="product-systems">
         <div className="page-container">
           <SectionHeading eyebrow="Product systems" title="Cable-management systems that keep the full product in view." description="Explore core product families, then bring project dimensions and material requirements into the inquiry process." />
-          <div className="product-grid">{homepageProducts.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
-          <div className="section-inline-cta"><Link className="inquiry-cta" href="/products">Explore All Product Families</Link></div>
+          <div className="product-grid">{homepageProducts.map((product) => <ProductCard key={product.slug} locale={locale} product={product} />)}</div>
+          <div className="section-inline-cta"><Link className="inquiry-cta" href={localizePath("/products", locale, company.defaultLocale)}>Explore All Product Families</Link></div>
         </div>
       </section>
 
@@ -98,7 +112,7 @@ export default async function HomePage() {
 
       <section className="content-section materials-section" id="materials">
         <div className="page-container">
-          <SectionHeading align="center" eyebrow="Material and surface options" title="Choose from verified material directions." description={`${cableTrayMaterials.en.length} cable-tray material options are available for confirmed project requirements.`} />
+          <SectionHeading align="center" eyebrow="Material and surface options" title="Choose from verified material directions." description={`${localizedMaterials.length} cable-tray material options are available for confirmed project requirements.`} />
           <div className="materials-grid">{materialOptions.map(({ accessibleLabel, icon: Icon, mark, title, text }) => <article aria-label={accessibleLabel} className="material-card" key={title}><Icon aria-hidden="true" className="material-card__icon" strokeWidth={1.7} /><span aria-hidden="true" className="material-card__mark">{mark}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
         </div>
       </section>
@@ -106,14 +120,14 @@ export default async function HomePage() {
       <section className="content-section faq-section" id="faq">
         <div className="page-container faq-layout">
           <SectionHeading eyebrow="FAQ" title="Answers grounded in the supplied project questionnaire." description="Ask for a quote when your drawing, quantity, or installation context needs a detailed review." />
-          <div className="faq-list">{faqItems.map((item) => <details key={item.question.en}><summary>{item.question.en}</summary><p>{item.answer.en}</p></details>)}</div>
+          <div className="faq-list">{localizedFaqs.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
         </div>
       </section>
 
-      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.slug}><time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt)}</time><h3><Link href={`/news/${article.slug}`}>{article.title}</Link></h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
+      {publishedArticles.length > 0 ? <section className="content-section news-section" id="news" aria-labelledby="news-heading"><div className="page-container"><SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan" /><div className="news-grid">{publishedArticles.map((article) => <article className="news-card" key={article.slug}><time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt, locale)}</time><h3><Link href={localizePath(`/news/${article.slug}`, locale, company.defaultLocale)}>{article.title}</Link></h3><p>{article.excerpt}</p></article>)}</div></div></section> : null}
 
-      <section className="inquiry-banner" id="inquiry" aria-labelledby="inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Start your project discussion</p><h2 id="inquiry-heading">Bring your drawing, quantity, and target application.</h2><p>Our inquiry workflow is ready for the project details your team needs to share.</p></div><InquiryCta label="Request a Quote" /></div></section>
-      <p className="sr-only">Available product families include {productFamilies.map((family) => family.name.en).join(", ")}.</p>
+      <section className="inquiry-banner" id="inquiry" aria-labelledby="inquiry-heading"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Start your project discussion</p><h2 id="inquiry-heading">Bring your drawing, quantity, and target application.</h2><p>Our inquiry workflow is ready for the project details your team needs to share.</p></div><InquiryCta label="Request a Quote" locale={locale} /></div></section>
+      <p className="sr-only">Available product families include {productFamilies.map((family) => resolveLocalizedText(family.name, locale, company.defaultLocale)).join(", ")}.</p>
     </main>
   );
 }

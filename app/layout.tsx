@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { buildPageMetadata, siteOrigin } from "@/lib/metadata";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 const geistSans = Geist({
@@ -17,23 +18,29 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteOrigin),
-  ...buildPageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return {
+    metadataBase: new URL(siteOrigin),
+    ...buildPageMetadata({
     title: company.publicName,
     description: "Cable-management and structural-support manufacturing for project requirements.",
     path: "/",
-  }),
-};
+      locale,
+      supportedLocales,
+    }),
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const { locale } = await getRequestLocaleContext();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className="site-shell">
-          <SiteHeader />
+          <SiteHeader locale={locale} />
           {children}
-          <SiteFooter />
+          <SiteFooter locale={locale} />
         </div>
       </body>
     </html>

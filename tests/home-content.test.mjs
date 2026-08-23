@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const homePage = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const globalCss = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -127,7 +128,10 @@ test("product cards use verified-family engineering visuals instead of workshop 
   }
 });
 
-test("homepage links and conditional news headings have matching targets and labels", () => {
-  assert.match(homePage, /<Link className="inquiry-cta" href="\/products">Explore All Product Families<\/Link>/);
+test("homepage links and conditional news headings have matching targets and labels", async () => {
+  const { default: HomePage } = await import("../app/page.tsx");
+  const renderedHomePage = renderToStaticMarkup(await HomePage());
+
+  assert.match(renderedHomePage, /<a class="inquiry-cta" href="\/products">Explore All Product Families<\/a>/);
   assert.match(homePage, /<SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan"/);
 });

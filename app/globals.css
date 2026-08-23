@@ -53,6 +53,7 @@ a { color: inherit; }
 
 .site-logo {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   flex: 0 0 auto;
   gap: 9px;
@@ -200,7 +201,7 @@ h1 {
 .hero-carousel__controls { position: absolute; right: max(24px, calc((100vw - 1200px) / 2)); bottom: 37px; display: flex; align-items: center; gap: 11px; }
 .carousel-status { min-width: 74px; color: rgba(255,255,255,.86); font-family: var(--font-geist-mono), monospace; font-size: .72rem; font-weight: 700; text-align: right; }
 .carousel-control, .carousel-selector { border: 1px solid rgba(255,255,255,.62); background: rgba(16,35,63,.5); color: #fff; cursor: pointer; }
-.carousel-control { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; }
+.carousel-control { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; border-radius: 50%; }
 .carousel-control:hover { background: rgba(255,255,255,.22); }
 .hero-carousel__selectors { display: flex; gap: 8px; }
 .carousel-selector { width: 36px; height: 8px; border-radius: 999px; }
@@ -445,7 +446,7 @@ h1 {
 .inquiry-field--message { margin-top: 20px; }
 .inquiry-field--file small { color: #526b82; font-size: .78rem; font-weight: 500; line-height: 1.45; }
 .inquiry-file-control { display: flex; min-height: 48px; align-items: center; gap: 10px; padding: 9px 12px; border: 1px dashed #6e94b2; border-radius: 11px; background: var(--mist); color: var(--clear-blue); }
-.inquiry-file-control input { min-height: 0; padding: 0; border: 0; background: transparent; color: #294863; font-size: .85rem; }
+.inquiry-file-control input { min-height: 44px; padding: 0; border: 0; background: transparent; color: #294863; font-size: .85rem; }
 .inquiry-file-control input:focus { outline: none; }
 .inquiry-form__status { min-height: 52px; margin-top: 14px; }
 .inquiry-form__notice { display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; margin: 0; border-radius: 12px; font-size: .91rem; font-weight: 650; line-height: 1.5; }
@@ -476,8 +477,17 @@ h1 {
   .hero-carousel::after { background: linear-gradient(180deg, rgba(16,35,63,.96), rgba(37,53,143,.88)); }
   .hero-carousel__content { padding-top: 80px; padding-bottom: 146px; }
   .hero-carousel h1 { font-size: clamp(2.75rem, 13vw, 4.4rem); }
-  .hero-carousel__controls { right: 16px; bottom: 31px; }
-  .carousel-selector { width: 24px; }
+  .hero-carousel__controls { right: 16px; bottom: 31px; left: 16px; display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px 44px; gap: 8px; }
+  .hero-carousel__selectors { min-width: 0; justify-content: center; gap: 2px; }
+  .carousel-selector { position: relative; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; }
+  .carousel-selector::before { position: absolute; top: 18px; left: 10px; width: 24px; height: 8px; border: 1px solid rgba(255,255,255,.62); border-radius: 999px; background: rgba(16,35,63,.5); content: ""; }
+  .carousel-selector[aria-pressed="true"] { background: transparent; }
+  .carousel-selector[aria-pressed="true"]::before { background: #bcecff; }
+  .carousel-status { position: absolute; right: 0; bottom: calc(100% + 7px); min-width: 0; }
+  .footer-navigation { gap: 2px; }
+  .footer-navigation a { display: flex; min-height: 44px; align-items: center; }
+  .site-footer__contact a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; margin-bottom: 0; }
+  .contact-detail-card a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; }
   .metrics-grid, .product-grid, .solutions-grid, .materials-grid, .manufacturing-flow, .factory-grid, .faq-layout, .news-grid, .news-list-grid, .contact-details-grid, .inquiry-form__grid { grid-template-columns: 1fr; }
   .inner-page-hero__grid, .product-detail-hero__grid, .detail-split, .detail-card-grid, .detail-card-grid--two, .capability-grid, .process-band__grid, .manufacturing-evidence__grid, .about-story, .faq-page-layout, .inquiry-layout { grid-template-columns: 1fr; }
   .product-gallery__main { min-height: 390px; }

@@ -3,18 +3,25 @@ import { Newspaper } from "lucide-react";
 import { NewsList } from "@/components/news-list";
 import { listPublishedArticles } from "@/lib/articles-db";
 import { buildPageMetadata } from "@/lib/metadata";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = buildPageMetadata({
-  title: `News | ${company.brand}`,
-  description: "Published company and manufacturing updates from Wanfan.",
-  path: "/news",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return buildPageMetadata({
+    title: `News | ${company.brand}`,
+    description: "Published company and manufacturing updates from Wanfan.",
+    path: "/news",
+    locale,
+    supportedLocales,
+  });
+}
 
 export default async function NewsPage() {
-  const articles = await listPublishedArticles(company.defaultLocale);
+  const { locale } = await getRequestLocaleContext();
+  const articles = await listPublishedArticles(locale);
 
   return (
     <main className="news-page">
@@ -27,7 +34,7 @@ export default async function NewsPage() {
       <section className="content-section" aria-label="Published news">
         <div className="page-container">
           {articles.length > 0 ? (
-            <NewsList articles={articles} />
+            <NewsList articles={articles} locale={locale} />
           ) : (
             <div className="news-empty-state" role="status">
               <Newspaper aria-hidden="true" />

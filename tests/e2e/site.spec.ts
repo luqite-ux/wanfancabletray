@@ -60,6 +60,17 @@ async function expectNoSeriousAccessibilityViolations(page: Page) {
   expect(results.violations.filter(({ impact }) => impact === "critical" || impact === "serious")).toEqual([]);
 }
 
+async function expectMinimumTouchTarget(locator: ReturnType<Page["locator"]>, label: string) {
+  const box = await locator.boundingBox();
+  expect(box, `${label} should have a rendered touch target`).not.toBeNull();
+  expect(box!.width, `${label} width should be at least 44 CSS pixels`).toBeGreaterThanOrEqual(44);
+  expect(box!.height, `${label} height should be at least 44 CSS pixels`).toBeGreaterThanOrEqual(44);
+  return {
+    width: Number(box!.width.toFixed(2)),
+    height: Number(box!.height.toFixed(2)),
+  };
+}
+
 async function capture(page: Page, testInfo: TestInfo, name: string) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
@@ -149,7 +160,9 @@ test("product list and detail galleries keep every product image complete", asyn
   const productDetailPaths = await page.getByRole("link", { name: /View Details/ }).evaluateAll((links) =>
     [...new Set(links.map((link) => (link as HTMLAnchorElement).pathname))],
   );
-  expect(productDetailPaths.length).toBeGreaterThan(0);
+  await expect(page.locator(".product-card")).toHaveCount(10);
+  await expect(page.getByRole("link", { name: /View Details/ })).toHaveCount(10);
+  expect(productDetailPaths).toHaveLength(10);
   await capture(page, testInfo, "products");
 
   await page.getByRole("link", { name: /View Details/ }).first().click();
@@ -165,6 +178,44 @@ test("product list and detail galleries keep every product image complete", asyn
     await expectImagesComplete(page, ".product-gallery__main img, .product-gallery__thumb img");
   }
   expect(runtimeProblems).toEqual([]);
+});
+
+test("mobile controls expose at least 44 by 44 CSS-pixel touch targets", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Touch-target measurements run in the mobile browser project.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const measurements: Record<string, { width: number; height: number }> = {};
+  const measure = async (label: string, locator: ReturnType<Page["locator"]>) => {
+    measurements[label] = await expectMinimumTouchTarget(locator, label);
+  };
+  const carousel = page.getByRole("region", { name: "Featured Wanfan capabilities" });
+  await measure("Header logo link", page.getByRole("banner").getByRole("link", { name: "Wanfan home" }));
+  await measure("Previous-slide button", carousel.getByRole("button", { name: "Previous slide" }));
+  await measure("Pause button", carousel.getByRole("button", { name: /Keep automatic slides paused/ }));
+  await measure("Next-slide button", carousel.getByRole("button", { name: "Next slide" }));
+  for (const [index, selector] of (await carousel.getByRole("button", { name: /^Show slide / }).all()).entries()) {
+    await measure(`Slide selector ${index + 1}`, selector);
+  }
+
+  const footerNavigationLinks = await page.getByRole("navigation", { name: "Footer navigation" }).getByRole("link").all();
+  for (const link of footerNavigationLinks) {
+    await measure(`Footer navigation link ${await link.textContent()}`, link);
+  }
+  const footerContacts = page.locator(".site-footer__contact a");
+  await measure("Footer email link", footerContacts.nth(0));
+  await measure("Footer phone link", footerContacts.nth(1));
+
+  await page.goto("/contact");
+  const contactLinks = page.locator(".contact-detail-card a");
+  await measure("Contact-page email link", contactLinks.nth(0));
+  await measure("Contact-page phone link", contactLinks.nth(1));
+  await measure("Attachment input", page.getByLabel("Drawing / specification attachment"));
+  await testInfo.attach("touch-target-measurements", {
+    body: JSON.stringify(measurements, null, 2),
+    contentType: "application/json",
+  });
+  console.log(`[touch-target-measurements] ${JSON.stringify(measurements)}`);
 });
 
 test("news empty state and inquiry validation stay honest without live credentials", async ({ page }) => {

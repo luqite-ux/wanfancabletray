@@ -6,6 +6,7 @@ import {
   listAllPublishedArticles,
 } from "@/lib/articles-db";
 import { buildPageMetadata } from "@/lib/metadata";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 interface NewsDetailPageProps {
@@ -14,15 +15,17 @@ interface NewsDetailPageProps {
 
 export const revalidate = 60;
 export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
-  const articles = await listAllPublishedArticles(company.defaultLocale);
+  const articles = await listAllPublishedArticles();
   return articles.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: NewsDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getPublishedArticleBySlug(slug, company.defaultLocale);
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  const article = await getPublishedArticleBySlug(slug, locale);
   if (!article) return { title: "News article not found", robots: { index: false, follow: false } };
 
   return buildPageMetadata({
@@ -33,13 +36,16 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
     imageAlt: article.title,
     type: "article",
     publishedTime: article.publishedAt,
+    locale,
+    supportedLocales,
   });
 }
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   const { slug } = await params;
-  const article = await getPublishedArticleBySlug(slug, company.defaultLocale);
+  const { locale } = await getRequestLocaleContext();
+  const article = await getPublishedArticleBySlug(slug, locale);
   if (!article) notFound();
 
-  return <main><ArticleDetail article={article} /></main>;
+  return <main><ArticleDetail article={article} locale={locale} /></main>;
 }

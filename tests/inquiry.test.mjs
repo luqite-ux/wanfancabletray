@@ -376,9 +376,16 @@ test("form request helper preserves server and network errors", async () => {
 });
 
 test("Contact and Request-a-Quote render distinct metadata, verified contact facts and product/category prefill", async () => {
-  const [{ default: ContactPage, metadata: contactMetadata }, { default: RequestQuotePage, metadata: quoteMetadata }] = await Promise.all([
+  const [
+    { default: ContactPage, generateMetadata: generateContactMetadata },
+    { default: RequestQuotePage, generateMetadata: generateQuoteMetadata },
+  ] = await Promise.all([
     import("../app/contact/page.tsx"),
     import("../app/request-a-quote/page.tsx"),
+  ]);
+  const [contactMetadata, quoteMetadata] = await Promise.all([
+    generateContactMetadata(),
+    generateQuoteMetadata(),
   ]);
   const contactHtml = renderToStaticMarkup(createElement(ContactPage));
   const quoteHtml = renderToStaticMarkup(await RequestQuotePage({
