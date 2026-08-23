@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import type { SiteLocale } from "@/lib/localization";
-import { getConfiguredSupportedLocales } from "@/lib/locale-config";
+import { getRuntimeSupportedLocales } from "@/lib/locale-config";
 import { LOCALE_REQUEST_HEADER, resolveLocaleHeader } from "@/lib/locale-routing";
 import { company } from "@/lib/site-data";
 
@@ -10,7 +10,7 @@ export interface RequestLocaleContext {
 }
 
 export async function getRequestLocaleContext(): Promise<RequestLocaleContext> {
-  const supportedLocales = getConfiguredSupportedLocales();
+  const supportedLocales = await getRuntimeSupportedLocales();
   let headerValue: string | null = null;
   try {
     headerValue = (await headers()).get(LOCALE_REQUEST_HEADER);

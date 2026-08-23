@@ -10,6 +10,7 @@ type CaptchaResponse = {
   svg: string
   token: string
   expiresAt: number
+  accessiblePrompt?: string
 }
 
 type InquiryCaptchaFieldProps = {
@@ -32,6 +33,7 @@ export function InquiryCaptchaField({
   const [challenge, setChallenge] = useState<CaptchaResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [accessible, setAccessible] = useState(false)
 
   const refresh = useCallback(async () => {
     const request = requests.begin()
@@ -39,13 +41,13 @@ export function InquiryCaptchaField({
     setError('')
     setChallenge(null)
     try {
-      const response = await fetch(`/api/captcha?scope=${encodeURIComponent(scope)}`, {
+      const response = await fetch(`/api/captcha?scope=${encodeURIComponent(scope)}${accessible ? '&format=accessible' : ''}`, {
         cache: 'no-store',
         signal: request.signal,
       })
       if (!response.ok) throw new Error('captcha unavailable')
       const body = (await response.json()) as CaptchaResponse
-      if (!body.svg || !body.token) throw new Error('invalid captcha response')
+      if ((!body.svg && !body.accessiblePrompt) || !body.token) throw new Error('invalid captcha response')
       if (!requests.isCurrent(request)) return
       setChallenge(body)
     } catch {
@@ -54,7 +56,7 @@ export function InquiryCaptchaField({
     } finally {
       if (requests.isCurrent(request)) setLoading(false)
     }
-  }, [requests, scope])
+  }, [accessible, requests, scope])
 
   useEffect(() => {
     const timer = window.setTimeout(() => void refresh(), 0)
@@ -71,7 +73,11 @@ export function InquiryCaptchaField({
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex h-14 w-40 items-center justify-center overflow-hidden rounded-lg border bg-slate-50">
-          {challenge ? (
+          {challenge?.accessiblePrompt ? (
+            <span className="px-3 text-center text-sm font-medium text-slate-900">
+              {challenge.accessiblePrompt}
+            </span>
+          ) : challenge ? (
             // The SVG is generated from a fixed server-side template and rendered as an image, not injected as HTML.
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -93,8 +99,8 @@ export function InquiryCaptchaField({
           type="text"
           required
           disabled={!challenge}
-          minLength={4}
-          maxLength={4}
+          minLength={accessible ? 1 : 4}
+          maxLength={accessible ? 2 : 4}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -110,6 +116,13 @@ export function InquiryCaptchaField({
           className="h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Refresh
+        </button>
+        <button
+          type="button"
+          onClick={() => setAccessible((current) => !current)}
+          className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        >
+          {accessible ? 'Use image code' : 'Use accessible question'}
         </button>
       </div>
       {error ? (

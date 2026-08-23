@@ -23,6 +23,7 @@ const SERVICE_UNAVAILABLE = { error: '验证码服务暂时不可用，请稍后
 function createCaptchaGetHandler(dependencies: CaptchaRouteDependencies = {}) {
   return async function GET(request: Request) {
     const scope = new URL(request.url).searchParams.get('scope')?.trim() ?? ''
+    const accessible = new URL(request.url).searchParams.get('format') === 'accessible'
     if (!FORM_SCOPE_PATTERN.test(scope)) {
       return Response.json(
         { error: '验证码请求无效' },
@@ -44,14 +45,15 @@ function createCaptchaGetHandler(dependencies: CaptchaRouteDependencies = {}) {
             store: dependencies.store,
           }
         : createSupabaseCaptchaContextFromEnv(env, dependencies.fetch ?? fetch)
-      const { svg, token, expiresAt } = await issueCaptchaChallenge({
+      const challenge = await issueCaptchaChallenge({
         secret,
         scope,
         now: dependencies.now?.(),
+        accessible,
         ...context,
       })
       return Response.json(
-        { svg, token, expiresAt },
+        challenge,
         { headers: NO_STORE_HEADERS },
       )
     } catch {

@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getConfiguredSupportedLocales } from "@/lib/locale-config";
+import { getRuntimeSupportedLocales } from "@/lib/locale-config";
 import { LOCALE_REQUEST_HEADER, resolveLocaleHeader, resolveLocaleRoute } from "@/lib/locale-routing";
 import { company } from "@/lib/site-data";
 
 const unsupportedLocalePath = "/__unsupported-locale__";
 
-export function proxy(request: NextRequest) {
-  const supportedLocales = getConfiguredSupportedLocales();
+export async function proxy(request: NextRequest) {
+  const supportedLocales = await getRuntimeSupportedLocales();
   const decision = resolveLocaleRoute(
     request.nextUrl.pathname,
     supportedLocales,
