@@ -126,6 +126,20 @@ test("legacy English text and lists precede unrelated foreign i18n fallbacks", (
   assert.deepEqual(requested.features, ["请求语言特点"]);
 });
 
+test("image alt uses the first non-empty locale before its generated fallback", () => {
+  const product = mapProductRow({
+    ...databaseRow,
+    name_i18n: { en: "Cable Tray" },
+    extra_data: {
+      ...databaseRow.extra_data,
+      image_alt_i18n: { fr: "Vue française du chemin de câbles" },
+    },
+  }, "de");
+
+  assert.equal(product.imageAlt, "Vue française du chemin de câbles");
+  assert.equal(product.gallery[0].alt, "Vue française du chemin de câbles");
+});
+
 test("new tenant product slugs do not inherit cable-tray-specific fallback facts", () => {
   const product = mapProductRow({
     slug: "drawing-specific-bracket",

@@ -307,7 +307,7 @@ function normalizedSpecifications(value: unknown, fallback: ProductSpecification
 function localizedImageAlt(extra: Record<string, unknown>, locale: SiteLocale, fallback: string) {
   const value = extra.image_alt_i18n;
   if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
-  return localizedText(value as LocalizedText, locale, fallback) || fallback;
+  return localizedText(value as LocalizedText, locale, "", fallback) || fallback;
 }
 
 function productGallery(row: ProductRow, image: string, imageAlt: string) {
