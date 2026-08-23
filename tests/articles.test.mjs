@@ -148,21 +148,56 @@ test("article detail lookup cannot return drafts or another tenant's matching sl
   assert.match(renderToStaticMarkup(createElement(ArticleDetail, { article })), /Drawings establish the review basis/);
 });
 
-test("article detail preserves allowed rich HTML while removing executable content and unsafe URLs", () => {
+test("article detail preserves safe shared-admin Tiptap images, marks, text styles, alignment, links, and table columns", () => {
   const article = mapArticleRow({
     ...publishedRow,
     featured_image: null,
     content_i18n: {
-      en: '<h2>Drawing review</h2><p onclick="steal()">Safe <strong>process</strong>.</p><ul><li>One</li></ul><script>alert(1)</script><a href="javascript:alert(2)" onmouseover="steal()">Unsafe link</a><a href="https://example.com/spec">Specification</a><img src="x" onerror="steal()">',
+      en: [
+        '<h2 style="text-align: center">Drawing review</h2>',
+        '<p style="text-align: right"><span style="color: #2563eb; font-size: 18px">Styled text</span> <mark>Highlighted</mark> <a href="https://example.com/spec" target="_blank" rel="noopener noreferrer nofollow" style="color: #16a34a">Specification</a></p>',
+        '<img src="https://pub-wanfan.r2.dev/articles/line.jpg" alt="Cable tray line" title="Workshop" width="1280" height="720" class="max-w-full rounded">',
+        '<table style="min-width: 150px"><colgroup><col style="width: 100px"><col width="50" span="2" style="min-width: 25px"></colgroup><tbody><tr><th colspan="2" rowspan="1" colwidth="100,50" style="text-align: center"><p>Header</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="100" style="text-align: right"><p>Value</p></td></tr></tbody></table>',
+      ].join(""),
     },
   }, "en");
   const html = renderToStaticMarkup(createElement(ArticleDetail, { article }));
 
-  assert.match(html, /<h2>Drawing review<\/h2>/);
-  assert.match(html, /<p>Safe <strong>process<\/strong>\.<\/p>/);
-  assert.match(html, /<ul><li>One<\/li><\/ul>/);
-  assert.match(html, /<a href="https:\/\/example\.com\/spec"[^>]*>Specification<\/a>/);
-  assert.doesNotMatch(html, /<script|<img|onclick|onmouseover|onerror|javascript:|alert\(/i);
+  assert.match(html, /<h2 style="text-align:\s*center">Drawing review<\/h2>/);
+  assert.match(html, /<span style="(?=[^"]*color:\s*#2563eb)(?=[^"]*font-size:\s*18px)[^"]*">Styled text<\/span>/);
+  assert.match(html, /<mark>Highlighted<\/mark>/);
+  assert.match(html, /<a (?=[^>]*href="https:\/\/example\.com\/spec")(?=[^>]*target="_blank")(?=[^>]*rel="noopener noreferrer nofollow")(?=[^>]*style="color:\s*#16a34a")[^>]*>Specification<\/a>/);
+  assert.match(html, /<img (?=[^>]*src="https:\/\/pub-wanfan\.r2\.dev\/articles\/line\.jpg")(?=[^>]*alt="Cable tray line")(?=[^>]*title="Workshop")(?=[^>]*width="1280")(?=[^>]*height="720")[^>]*>/);
+  assert.match(html, /<table style="min-width:\s*150px"><colgroup><col style="width:\s*100px"\s*\/><col (?=[^>]*width="50")(?=[^>]*span="2")(?=[^>]*style="min-width:\s*25px")[^>]*\/><\/colgroup>/);
+  assert.match(html, /<th (?=[^>]*colspan="2")(?=[^>]*rowspan="1")(?=[^>]*colwidth="100,50")(?=[^>]*style="text-align:\s*center")[^>]*>/);
+});
+
+test("article detail removes unsafe Tiptap URLs, event handlers, dimensions, and CSS while retaining safe content", () => {
+  const article = mapArticleRow({
+    ...publishedRow,
+    featured_image: null,
+    content_i18n: {
+      en: [
+        '<script>alert(1)</script><p onclick="steal()" style="text-align: expression(alert(2)); background-image: url(javascript:alert(3))">Readable paragraph</p>',
+        '<span style="color: red; font-size: 999px; position: fixed">Readable span</span>',
+        '<a href="javascript:alert(4)" target="_self" rel="opener" style="color: expression(alert(5))" onmouseover="steal()">Bad link</a>',
+        '<img src="data:image/svg+xml,&lt;svg onload=alert(6)&gt;" alt="Blocked data image"><img src="javascript:alert(7)" alt="Blocked script image"><img src="http://example.com/blocked.jpg" alt="Blocked HTTP image">',
+        '<img src="https://pub-wanfan.r2.dev/articles/clean.jpg" alt="Clean image" width="99999" height="auto" style="background-image:url(javascript:alert(8))" onerror="steal()">',
+        '<table style="width: calc(100% + 1px); background: url(javascript:alert(9))" onload="steal()"><colgroup span="999"><col width="javascript:alert(10)" span="999" style="width: expression(alert(11))"></colgroup><tbody><tr><td colspan="9999" rowspan="0" colwidth="100,javascript" style="text-align: expression(alert(12))">Readable cell</td></tr></tbody></table>',
+      ].join(""),
+    },
+  }, "en");
+  const html = renderToStaticMarkup(createElement(ArticleDetail, { article }));
+  const cleanImage = html.match(/<img[^>]*clean\.jpg[^>]*>/)?.[0] ?? "";
+
+  assert.match(html, /Readable paragraph/);
+  assert.match(html, /Readable span/);
+  assert.match(html, /Readable cell/);
+  assert.match(cleanImage, /src="https:\/\/pub-wanfan\.r2\.dev\/articles\/clean\.jpg"/);
+  assert.match(cleanImage, /alt="Clean image"/);
+  assert.doesNotMatch(cleanImage, /width=|height=|style=|onerror=/i);
+  assert.doesNotMatch(html, /<script|onclick|onmouseover|onerror|onload|javascript:|data:image|src="http:\/\/|expression\(|position\s*:|background(?:-image)?\s*:|font-size:\s*999px|span="999"|colspan="9999"|colwidth="[^"]*javascript/i);
+  assert.doesNotMatch(html, /Blocked data image|Blocked script image|Blocked HTTP image/);
 });
 
 test("legacy plain-text articles render as paragraphs and explicit line breaks", () => {
