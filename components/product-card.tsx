@@ -2,17 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
+import type { ProductView } from "@/lib/products-db";
 
-export interface ProductView {
-  slug: string;
-  name: string;
-  family: string;
-  description: string;
-  image: string;
-  imageAlt: string;
-}
+export type ProductCardView = Pick<ProductView, "slug" | "name" | "family" | "description" | "image" | "imageAlt">;
 
-export function ProductCard({ product }: { product: ProductView }) {
+export function ProductCard({ product }: { product: ProductCardView }) {
   return (
     <article className="product-card">
       <div className="product-card__image-wrap">
