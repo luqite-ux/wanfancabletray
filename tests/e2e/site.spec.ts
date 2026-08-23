@@ -1,7 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
-const isExternalRun = Boolean(process.env.PLAYWRIGHT_TEST_BASE_URL);
 const localCaptchaSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="56" viewBox="0 0 160 56"><rect width="160" height="56" rx="8" fill="#f8fafc"/><text x="38" y="36" fill="#0f172a" font-size="24">TEST</text></svg>';
 
 const independentRoutes = [
@@ -48,7 +47,7 @@ async function stubCaptcha(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  if (!isExternalRun) await stubCaptcha(page);
+  await stubCaptcha(page);
 });
 
 async function expectImagesComplete(page: Page, selector: string) {
@@ -243,7 +242,6 @@ test("mobile controls expose at least 44 by 44 CSS-pixel touch targets", async (
 });
 
 test("news empty state and inquiry validation stay honest without live credentials", async ({ page }) => {
-  if (isExternalRun) await stubCaptcha(page);
   const runtimeProblems = monitorRuntime(page);
   await page.goto("/news");
   await expect(page.getByRole("status")).toContainText("No published updates yet");

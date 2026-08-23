@@ -15,8 +15,9 @@ No secret value is present in this report, the repository remote, Git configurat
 - GitHub company identity: authenticated GET /user returned exactly luqite-ux before every remote push.
 - Repository: luqite-ux/wanfancabletray; repository ID 1343776978; owner luqite-ux; default branch main.
 - Reviewed input SHA: d54ed4cce91cf6c03989e3c0f909faffb641bc19.
-- Runtime code SHA: 09476196a950ce8d4f70319b6c99636d050c19b3.
-- Runtime Production deployment: dpl_3cn6jcAtsCVFfrdAZvECcReU9T18; READY at https://wanfancabletray-di6at3fye-huanqiu.vercel.app; source repository/ref/SHA read back as luqite-ux/wanfancabletray, main, 09476196a950ce8d4f70319b6c99636d050c19b3.
+- Final-review input SHA: 0744e5ba2a1683e27d1c057c9809607d4f599e86.
+- Runtime code SHA: 2b1173fdc6e653d5063174ffd2d9cb3c17788ae9.
+- Runtime Production deployment: dpl_AzBpeH8LfMMH2RZHP3h1iuyFxxyC; READY at https://wanfancabletray-448lluby9-huanqiu.vercel.app; source repository/ref/SHA read back as luqite-ux/wanfancabletray, main, 2b1173fdc6e653d5063174ffd2d9cb3c17788ae9.
 - Vercel project: wanfancabletray, ID prj_btmXR6MHm2adsRz48lsDpS06gkJW, team team_v0pxRIIzSUGJleUTRNSz6GS4.
 - Git source: GitHub repository ID 1343776978, owner luqite-ux, repository wanfancabletray, Production Branch main.
 - Production domains: https://wanfancabletray.com and https://www.wanfancabletray.com; www returns 308 to the apex.
@@ -84,18 +85,28 @@ No secret value is present in this report, the repository remote, Git configurat
 - robots.txt returns 200, identifies the canonical sitemap, and disallows /admin/ and /api/; the sitemap returns XML and excludes both namespaces.
 - Verified Home/footer facts: legal English company name, contact email, phone, full address, dynamic-year copyright, and clear linked logo.
 - Desktop and Pixel 7 browser checks passed for complete product subjects, object-fit contain, clean image backgrounds, footer/logo contrast and proportions, overlay absence, console errors, and axe serious/critical findings.
-- Final live Playwright run: 12/12 passed in 2.0 minutes against https://wanfancabletray.com.
+- Final live Playwright run: 13 passed with one intentional desktop touch-target skip in 2.6 minutes against https://wanfancabletray.com.
 - Live public-page and source scans, fallback scan, and Supabase scan found zero warranty/guarantee/Chinese promise hits and zero price/cart/online-payment hits.
+
+## Final review fix wave
+
+- All named 390×844 touch targets have real browser assertions and passed live. Exact measurements: logo 108.36×44; carousel previous/pause/next and three selectors 44×44; footer navigation 350×44; footer email 198.27×44; footer phone 140.5×44; contact email 214.88×44; contact phone 148.52×44; attachment 265.91×44. The newly integrated CAPTCHA input/refresh targets measured 128×44 and 76.89×44.
+- Locale routing uses one Next.js 16 Proxy and the existing App Router tree. A local-only `en,zh` browser fixture proved `/zh/products`, `/zh/products/cable-tray-systems`, `/zh/news`, and `/zh/news/locale-routing-update` render localized data, `lang`, canonical, reciprocal `hreflang`, internal links, and resolvable sitemap URLs. `/en/*` redirects to default unprefixed English and `/xx/*` is rejected.
+- Production was not switched to an empty locale. Live `/products` is 200/canonical, `/en/products` is 308 to `/products`, `/zh/products` and `/xx/products` are 404, and the 20-URL sitemap contains no prefixed English or Chinese URLs.
+- Product coverage is exact: browser assertions require ten product cards, ten unique detail routes, and every detail route/gallery.
+- Both local E2E servers set `reuseExistingServer: false`. A stale service on port 4173 cannot satisfy the suite.
+- The remote-only atomic CAPTCHA commit `92fbe7ec6353b4d6686dabfda27391b86fa98a26` was integrated without force-push. Its TypeScript import was normalized for this repository, and browser CAPTCHA responses are intercepted so verification remains no-write while still measuring the rendered controls.
+- Latest live screenshots are committed under `output/playwright/` for desktop and Pixel 7 home, products, product detail, and request-a-quote views.
 
 ## Verification summary
 
 - Focused delivery tests: 17/17 passed.
-- Full unit/integration/contract suite: 110/110 passed.
+- Full unit/integration/contract suite: 119/119 passed.
 - Lint: passed.
 - Typecheck: passed.
-- Production build: passed; 30 static pages generated.
-- Local Playwright: 12/12 passed in 1.4 minutes.
-- Live Playwright: 12/12 passed in 2.0 minutes.
+- Production build: passed; 29 static pages generated and the Next.js 16 Proxy registered.
+- Local Playwright: 14 passed with one intentional desktop touch-target skip, including the alternate-locale project.
+- Live Playwright: 13 passed with one intentional desktop touch-target skip in 2.6 minutes.
 - Live HTTP/SEO: 20/20 sitemap routes and 10/10 product details passed.
 - Fallback media: ten products, ten images, zero missing files, zero prohibited hits.
 - Git diff hygiene: passed.
@@ -106,6 +117,7 @@ No secret value is present in this report, the repository remote, Git configurat
 - Test attachment: none created.
 - Disposable product/article: removed; zero residual.
 - Temporary locale: removed; supported languages restored to [en].
+- Final locale browser coverage used only process-local fake data; Production remained [en] and no tenant, inquiry, CAPTCHA, R2, or content row was mutated.
 - Other tenants: untouched.
 - Customer worktree and shared-admin reviewed worktree are intentionally retained for final review as required by the delivery task.
 - No production blocker or pending external mutation remains.
