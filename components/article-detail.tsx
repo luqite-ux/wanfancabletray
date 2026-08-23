@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays } from "lucide-react";
+import { sanitizeArticleContent } from "@/lib/article-content";
 import type { ArticleView } from "@/lib/articles-db";
 import { formatPublishedDate } from "@/lib/articles-db";
 
 export function ArticleDetail({ article }: { article: ArticleView }) {
-  const paragraphs = article.content.split(/\r?\n\s*\r?\n/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  const contentHtml = sanitizeArticleContent(article.content);
 
   return (
     <article className="news-detail">
@@ -25,9 +26,7 @@ export function ArticleDetail({ article }: { article: ArticleView }) {
           <Image alt={article.title} fill priority sizes="(max-width: 900px) 100vw, 900px" src={article.featuredImage} style={{ objectFit: "cover" }} />
         </div>
       ) : null}
-      <div className="page-container news-detail__body">
-        {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-      </div>
+      <div className="page-container news-detail__body" dangerouslySetInnerHTML={{ __html: contentHtml }} />
     </article>
   );
 }

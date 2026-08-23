@@ -31,6 +31,17 @@ function createArticleClient(rows) {
       let orderColumn = null;
       let ascending = true;
 
+      function selectRows(from = 0, to = Number.POSITIVE_INFINITY) {
+        return tableRows
+          .filter((row) => [...filters].every(([column, value]) => row[column] === value))
+          .sort((left, right) => {
+            if (!orderColumn) return 0;
+            const comparison = String(left[orderColumn] ?? "").localeCompare(String(right[orderColumn] ?? ""));
+            return ascending ? comparison : -comparison;
+          })
+          .slice(from, Number.isFinite(to) ? to + 1 : undefined);
+      }
+
       const query = {
         select() {
           return query;
@@ -45,15 +56,10 @@ function createArticleClient(rows) {
           return query;
         },
         limit(count) {
-          const data = tableRows
-            .filter((row) => [...filters].every(([column, value]) => row[column] === value))
-            .sort((left, right) => {
-              if (!orderColumn) return 0;
-              const comparison = String(left[orderColumn] ?? "").localeCompare(String(right[orderColumn] ?? ""));
-              return ascending ? comparison : -comparison;
-            })
-            .slice(0, count);
-          return Promise.resolve({ data, error: null });
+          return Promise.resolve({ data: selectRows(0, count - 1), error: null });
+        },
+        range(from, to) {
+          return Promise.resolve({ data: selectRows(from, to), error: null });
         },
       };
 
@@ -114,6 +120,13 @@ test("article localization falls back from requested locale to default and first
   assert.equal(mapArticleRow(publishedRow, "zh").title, "项目图纸复核");
   assert.equal(mapArticleRow({ ...publishedRow, title_i18n: { en: "English title" } }, "de").title, "English title");
   assert.equal(mapArticleRow({ ...publishedRow, title_i18n: { en: " ", fr: "Actualité française" } }, "de").title, "Actualité française");
+
+  const foreignBeforeLegacy = mapArticleRow({
+    ...publishedRow,
+    title_i18n: { en: " ", fr: "Actualité française" },
+    title_en: "Legacy English title",
+  }, "de");
+  assert.equal(foreignBeforeLegacy.title, "Actualité française");
 });
 
 test("article detail lookup cannot return drafts or another tenant's matching slug", async () => {
@@ -133,4 +146,54 @@ test("article detail lookup cannot return drafts or another tenant's matching sl
   );
   assert.equal(article?.title, "Project Drawing Review");
   assert.match(renderToStaticMarkup(createElement(ArticleDetail, { article })), /Drawings establish the review basis/);
+});
+
+test("article detail preserves allowed rich HTML while removing executable content and unsafe URLs", () => {
+  const article = mapArticleRow({
+    ...publishedRow,
+    featured_image: null,
+    content_i18n: {
+      en: '<h2>Drawing review</h2><p onclick="steal()">Safe <strong>process</strong>.</p><ul><li>One</li></ul><script>alert(1)</script><a href="javascript:alert(2)" onmouseover="steal()">Unsafe link</a><a href="https://example.com/spec">Specification</a><img src="x" onerror="steal()">',
+    },
+  }, "en");
+  const html = renderToStaticMarkup(createElement(ArticleDetail, { article }));
+
+  assert.match(html, /<h2>Drawing review<\/h2>/);
+  assert.match(html, /<p>Safe <strong>process<\/strong>\.<\/p>/);
+  assert.match(html, /<ul><li>One<\/li><\/ul>/);
+  assert.match(html, /<a href="https:\/\/example\.com\/spec"[^>]*>Specification<\/a>/);
+  assert.doesNotMatch(html, /<script|<img|onclick|onmouseover|onerror|javascript:|alert\(/i);
+});
+
+test("legacy plain-text articles render as paragraphs and explicit line breaks", () => {
+  const article = mapArticleRow({
+    ...publishedRow,
+    content_i18n: { en: "First paragraph.\n\nSecond line\ncontinues." },
+  }, "en");
+  const html = renderToStaticMarkup(createElement(ArticleDetail, { article }));
+
+  assert.match(html, /<p>First paragraph\.<\/p><p>Second line<br\s*\/>continues\.<\/p>/);
+});
+
+test("all-published reader paginates until every tenant article is returned", async () => {
+  const rows = Array.from({ length: 205 }, (_, index) => ({
+    ...publishedRow,
+    slug: `published-${String(index).padStart(3, "0")}`,
+    title_i18n: { en: `Published ${index}` },
+  }));
+  rows.push({ ...publishedRow, slug: "draft", is_published: false });
+  rows.push({ ...publishedRow, slug: "other-tenant", tenant_id: "another-tenant" });
+
+  const articleDb = await import("../lib/articles-db.ts");
+  assert.equal(typeof articleDb.readAllTenantPublishedArticles, "function");
+  const articles = await articleDb.readAllTenantPublishedArticles(
+    createArticleClient(rows),
+    "tenant-wanfan",
+    "en",
+    100,
+  );
+
+  assert.equal(articles.length, 205);
+  assert.equal(new Set(articles.map(({ slug }) => slug)).size, 205);
+  assert.equal(articles.some(({ slug }) => slug === "draft" || slug === "other-tenant"), false);
 });

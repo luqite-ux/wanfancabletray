@@ -40,6 +40,7 @@ interface ArticleQuery {
   eq(column: string, value: unknown): ArticleQuery;
   order(column: string, options: { ascending: boolean }): ArticleQuery;
   limit(count: number): PromiseLike<ArticleQueryResult>;
+  range(from: number, to: number): PromiseLike<ArticleQueryResult>;
 }
 
 export interface ArticleQueryClient {
@@ -75,10 +76,10 @@ function localizedArticleText(
   const defaultValue = value?.[company.defaultLocale]?.trim();
   if (defaultValue) return defaultValue;
 
-  const legacy = legacyEnglish?.trim() || legacyText?.trim();
-  if (legacy) return legacy;
+  const localized = resolveLocalizedText(value, locale, company.defaultLocale);
+  if (localized) return localized;
 
-  return resolveLocalizedText(value, locale, company.defaultLocale);
+  return legacyEnglish?.trim() || legacyText?.trim() || "";
 }
 
 export function mapArticleRow(row: ArticleRow, locale: SiteLocale = company.defaultLocale): ArticleView {
@@ -114,6 +115,39 @@ export async function readTenantPublishedArticles(
     .filter((article) => article.slug && article.title && article.publishedAt);
 }
 
+export async function readAllTenantPublishedArticles(
+  client: ArticleQueryClient,
+  tenantId: string,
+  locale: SiteLocale = company.defaultLocale,
+  pageSize = 1000,
+): Promise<ArticleView[]> {
+  const normalizedPageSize = Math.max(1, Math.floor(pageSize));
+  const articles: ArticleView[] = [];
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await client
+      .from("articles")
+      .select(articleColumns)
+      .eq("tenant_id", tenantId)
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .order("slug", { ascending: true })
+      .range(offset, offset + normalizedPageSize - 1);
+
+    if (error || !data) return [];
+
+    articles.push(...data
+      .map((row) => mapArticleRow(row as ArticleRow, locale))
+      .filter((article) => article.slug && article.title && article.publishedAt));
+
+    if (data.length < normalizedPageSize) break;
+    offset += normalizedPageSize;
+  }
+
+  return articles;
+}
+
 export async function readTenantPublishedArticleBySlug(
   client: ArticleQueryClient,
   tenantId: string,
@@ -144,6 +178,16 @@ export async function listPublishedArticles(
   if (!client || !tenantId) return [];
 
   return readTenantPublishedArticles(client as unknown as ArticleQueryClient, tenantId, locale, limit);
+}
+
+export async function listAllPublishedArticles(
+  locale: SiteLocale = company.defaultLocale,
+): Promise<ArticleView[]> {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+  const client = getSupabaseServerClient();
+  if (!client || !tenantId) return [];
+
+  return readAllTenantPublishedArticles(client as unknown as ArticleQueryClient, tenantId, locale);
 }
 
 export async function getPublishedArticleBySlug(

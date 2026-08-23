@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArticleDetail } from "@/components/article-detail";
 import {
   getPublishedArticleBySlug,
-  listPublishedArticles,
+  listAllPublishedArticles,
 } from "@/lib/articles-db";
 import { buildPageMetadata } from "@/lib/metadata";
 import { company } from "@/lib/site-data";
@@ -16,7 +16,7 @@ export const revalidate = 60;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  const articles = await listPublishedArticles(company.defaultLocale);
+  const articles = await listAllPublishedArticles(company.defaultLocale);
   return articles.map(({ slug }) => ({ slug }));
 }
 

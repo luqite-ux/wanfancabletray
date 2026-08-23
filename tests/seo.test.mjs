@@ -65,6 +65,27 @@ test("locale-aware sitemap includes real detail routes and excludes drafts and e
   assert.equal(entries.every((entry) => entry.alternates.languages.en === entry.url), true);
 });
 
+test("every static sitemap pathname resolves to an extant page route", async () => {
+  const routeModules = new Map([
+    ["/", import("../app/page.tsx")],
+    ["/products", import("../app/products/page.tsx")],
+    ["/solutions", import("../app/solutions/page.tsx")],
+    ["/manufacturing", import("../app/manufacturing/page.tsx")],
+    ["/quality", import("../app/quality/page.tsx")],
+    ["/about", import("../app/about/page.tsx")],
+    ["/faq", import("../app/faq/page.tsx")],
+    ["/news", import("../app/news/page.tsx")],
+  ]);
+  const staticPaths = buildSitemapEntries({ articles: [], products: [] })
+    .map(({ url }) => new URL(url).pathname);
+
+  assert.deepEqual(new Set(staticPaths), new Set(routeModules.keys()));
+  for (const [path, routeModule] of routeModules) {
+    const route = await routeModule;
+    assert.equal(typeof route.default, "function", `${path} must resolve to a page component`);
+  }
+});
+
 test("robots exposes the canonical sitemap and host", async () => {
   const { default: robots } = await import("../app/robots.ts");
   const result = robots();
