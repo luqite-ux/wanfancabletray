@@ -83,6 +83,73 @@ test("exact apply refuses to delete an object referenced by the same tenant inqu
   assert.deepEqual(operations.removals, []);
 });
 
+test("stable id pagination protects an attachment referenced only after the first 1000 inquiries", async () => {
+  const correlationId = "44444444-4444-4444-8444-444444444444";
+  const attachmentPath = `tenant-wanfan/${correlationId}/later-page.pdf`;
+  const pagedFixture = {
+    tenantId: "tenant-wanfan",
+    storageObjects: [{ path: attachmentPath, created_at: "2026-08-18T00:00:00.000Z" }],
+    inquiries: [
+      ...Array.from({ length: 1000 }, (_, index) => ({
+        id: `inquiry-${String(index).padStart(4, "0")}`,
+        tenant_id: "tenant-wanfan",
+        message: `Inquiry without an attachment ${index}`,
+      })),
+      {
+        id: "zzzz-referenced-inquiry",
+        tenant_id: "tenant-wanfan",
+        message: `Attachment Path: ${attachmentPath}`,
+      },
+    ],
+  };
+  const fixtureClient = createFixtureCleanupClient(pagedFixture);
+  const orderCalls = [];
+  const client = {
+    ...fixtureClient.client,
+    from(table) {
+      assert.equal(table, "inquiries");
+      let tenantId = null;
+      let stableOrder = false;
+      const query = {
+        select() { return query; },
+        eq(column, value) {
+          assert.equal(column, "tenant_id");
+          tenantId = value;
+          return query;
+        },
+        order(column, options) {
+          orderCalls.push([column, options]);
+          stableOrder = column === "id" && options?.ascending === true;
+          return query;
+        },
+        async range(from, to) {
+          const rows = pagedFixture.inquiries
+            .filter((inquiry) => inquiry.tenant_id === tenantId)
+            .toSorted((left, right) => left.id.localeCompare(right.id));
+          const effectiveFrom = !stableOrder && from >= 1000 ? from + 1 : from;
+          return { data: rows.slice(effectiveFrom, to + 1), error: null };
+        },
+      };
+      return query;
+    },
+  };
+
+  const result = await runInquiryAttachmentCleanup({
+    client,
+    tenantId: "tenant-wanfan",
+    mode: "apply",
+    correlationId,
+    olderThanHours: null,
+    now,
+  });
+
+  assert.equal(orderCalls.length, 2);
+  assert.deepEqual(orderCalls, Array.from({ length: 2 }, () => ["id", { ascending: true }]));
+  assert.deepEqual(result.candidatePaths, []);
+  assert.deepEqual(result.protectedReferencedPaths, [attachmentPath]);
+  assert.deepEqual(fixtureClient.operations.removals, []);
+});
+
 test("real CLI fixture defaults to dry-run and reports zero mutations", () => {
   const result = spawnSync(process.execPath, [
     "scripts/cleanup-orphan-inquiry-attachments.mjs",

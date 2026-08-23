@@ -137,6 +137,7 @@ async function readTenantInquiryMessages(client, tenantId) {
       .from("inquiries")
       .select("id,message")
       .eq("tenant_id", tenantId)
+      .order("id", { ascending: true })
       .range(from, from + INQUIRY_PAGE_SIZE - 1);
     if (error) throw new Error(`Unable to read tenant inquiries: ${error.message || "database error"}`);
     const page = data || [];
@@ -224,7 +225,7 @@ export async function runInquiryAttachmentCleanup({
 export function createFixtureCleanupClient(fixture) {
   const storageObjects = fixture.storageObjects.map((row) => ({ ...row }));
   const inquiries = fixture.inquiries.map((row) => ({ ...row }));
-  const operations = { storagePrefixes: [], inquiryTenantIds: [], removals: [] };
+  const operations = { storagePrefixes: [], inquiryTenantIds: [], inquiryOrders: [], removals: [] };
 
   const client = {
     storage: {
@@ -258,6 +259,8 @@ export function createFixtureCleanupClient(fixture) {
     from(table) {
       if (table !== "inquiries") throw new Error(`Unexpected fixture table: ${table}`);
       let selectedTenantId = null;
+      let orderColumn = null;
+      let orderOptions = null;
       const query = {
         select() { return query; },
         eq(column, value) {
@@ -266,8 +269,18 @@ export function createFixtureCleanupClient(fixture) {
           operations.inquiryTenantIds.push(value);
           return query;
         },
+        order(column, options) {
+          orderColumn = column;
+          orderOptions = options;
+          operations.inquiryOrders.push([column, options]);
+          return query;
+        },
         async range(from, to) {
-          const rows = inquiries.filter(({ tenant_id }) => tenant_id === selectedTenantId).slice(from, to + 1);
+          const filtered = inquiries.filter(({ tenant_id }) => tenant_id === selectedTenantId);
+          const ordered = orderColumn === "id" && orderOptions?.ascending === true
+            ? filtered.toSorted((left, right) => left.id.localeCompare(right.id))
+            : filtered;
+          const rows = ordered.slice(from, to + 1);
           return { data: rows.map(({ id, message }) => ({ id, message })), error: null };
         },
       };
