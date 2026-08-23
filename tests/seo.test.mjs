@@ -75,6 +75,8 @@ test("every static sitemap pathname resolves to an extant page route", async () 
     ["/about", import("../app/about/page.tsx")],
     ["/faq", import("../app/faq/page.tsx")],
     ["/news", import("../app/news/page.tsx")],
+    ["/contact", import("../app/contact/page.tsx")],
+    ["/request-a-quote", import("../app/request-a-quote/page.tsx")],
   ]);
   const staticPaths = buildSitemapEntries({ articles: [], products: [] })
     .map(({ url }) => new URL(url).pathname);
@@ -114,6 +116,8 @@ test("every independent static page exposes canonical Open Graph metadata and th
     ["/about", await import("../app/about/page.tsx")],
     ["/faq", await import("../app/faq/page.tsx")],
     ["/news", await import("../app/news/page.tsx")],
+    ["/contact", await import("../app/contact/page.tsx")],
+    ["/request-a-quote", await import("../app/request-a-quote/page.tsx")],
   ];
 
   for (const [path, route] of routes) {

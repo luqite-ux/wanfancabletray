@@ -13,6 +13,8 @@ const staticPaths = [
   "/about",
   "/faq",
   "/news",
+  "/contact",
+  "/request-a-quote",
 ];
 
 interface SitemapInput {

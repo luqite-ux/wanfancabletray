@@ -412,12 +412,62 @@ h1 {
 .inquiry-banner p:not(.eyebrow) { max-width: 620px; margin: 0; color: rgba(255,255,255,.86); line-height: 1.65; }
 .inquiry-banner .inquiry-cta { flex: 0 0 auto; background: #fff; color: var(--engineering-blue); box-shadow: none; }
 
+.inquiry-page__hero { padding-bottom: clamp(70px, 9vw, 112px); }
+.contact-details-section { background: #fff; }
+.contact-details-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.contact-detail-card { min-height: 220px; padding: 28px; border: 1px solid rgba(8,120,209,.18); border-radius: 22px; background: linear-gradient(145deg, #fff, #f4fbff); box-shadow: 0 17px 48px rgba(37,53,143,.07); }
+.contact-detail-card > svg { width: 30px; height: 30px; color: var(--clear-blue); }
+.contact-detail-card h3 { margin: 26px 0 10px; color: var(--engineering-blue); font-size: 1.18rem; }
+.contact-detail-card a, .contact-detail-card address { color: #294863; font-style: normal; line-height: 1.62; overflow-wrap: anywhere; }
+.contact-detail-card a { font-weight: 700; text-underline-offset: 3px; }
+
+.inquiry-form-section { background: linear-gradient(135deg, #f6fcff, #e9f8ff 52%, #fff); }
+.inquiry-layout { display: grid; grid-template-columns: minmax(270px, .68fr) minmax(0, 1.32fr); gap: clamp(36px, 7vw, 94px); align-items: start; }
+.inquiry-layout__intro { position: sticky; top: 116px; }
+.inquiry-layout__intro > svg { width: 38px; height: 38px; margin-bottom: 18px; color: var(--clear-blue); }
+.inquiry-layout__intro h2 { margin: 11px 0 18px; color: var(--engineering-blue); font-size: clamp(2.1rem, 4.2vw, 3.8rem); line-height: 1.04; letter-spacing: -.052em; }
+.inquiry-layout__intro > p:not(.eyebrow) { color: #385570; font-size: 1.03rem; line-height: 1.72; }
+.inquiry-input-list { display: grid; gap: 12px; padding: 0; margin: 30px 0 0; list-style: none; }
+.inquiry-input-list li { display: flex; gap: 13px; padding: 16px; border: 1px solid rgba(8,120,209,.16); border-radius: 16px; background: rgba(255,255,255,.78); color: #405b78; font-size: .91rem; line-height: 1.45; }
+.inquiry-input-list svg { flex: 0 0 auto; margin-top: 2px; color: var(--clear-blue); }
+.inquiry-input-list strong { display: block; margin-bottom: 3px; color: var(--engineering-blue); }
+
+.inquiry-form { padding: clamp(24px, 4vw, 42px); border: 1px solid rgba(8,120,209,.2); border-radius: 26px; background: #fff; box-shadow: 0 24px 68px rgba(37,53,143,.1); }
+.inquiry-form__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.inquiry-field { display: grid; align-content: start; gap: 8px; min-width: 0; color: var(--engineering-blue); font-size: .91rem; font-weight: 760; }
+.inquiry-field > span:first-child { line-height: 1.4; }
+.required-mark { color: #b42318; }
+.inquiry-field input, .inquiry-field select, .inquiry-field textarea { width: 100%; min-height: 48px; padding: 11px 13px; border: 1px solid #8aa7be; border-radius: 11px; background: #fbfdff; color: var(--ink); font: inherit; font-size: .95rem; font-weight: 500; }
+.inquiry-field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+.inquiry-field input::placeholder, .inquiry-field textarea::placeholder { color: #647b8f; opacity: 1; }
+.inquiry-field input:hover, .inquiry-field select:hover, .inquiry-field textarea:hover { border-color: var(--clear-blue); }
+.inquiry-field input:focus, .inquiry-field select:focus, .inquiry-field textarea:focus { border-color: var(--engineering-blue); background: #fff; outline: 3px solid rgba(8,120,209,.2); outline-offset: 1px; }
+.inquiry-field--message { margin-top: 20px; }
+.inquiry-field--file small { color: #526b82; font-size: .78rem; font-weight: 500; line-height: 1.45; }
+.inquiry-file-control { display: flex; min-height: 48px; align-items: center; gap: 10px; padding: 9px 12px; border: 1px dashed #6e94b2; border-radius: 11px; background: var(--mist); color: var(--clear-blue); }
+.inquiry-file-control input { min-height: 0; padding: 0; border: 0; background: transparent; color: #294863; font-size: .85rem; }
+.inquiry-file-control input:focus { outline: none; }
+.inquiry-form__status { min-height: 52px; margin-top: 14px; }
+.inquiry-form__notice { display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; margin: 0; border-radius: 12px; font-size: .91rem; font-weight: 650; line-height: 1.5; }
+.inquiry-form__notice svg { flex: 0 0 auto; margin-top: 1px; }
+.inquiry-form__notice--submitting { border: 1px solid #8cc8eb; background: #eaf8ff; color: #145277; }
+.inquiry-form__notice--success { border: 1px solid #6fc29a; background: #ecfdf3; color: #17633e; }
+.inquiry-form__notice--error { border: 1px solid #e49b95; background: #fff1f0; color: #8d241b; }
+.inquiry-form__submit { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 9px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--engineering-blue); color: #fff; font: inherit; font-weight: 780; cursor: pointer; transition: background 160ms ease, transform 160ms ease; }
+.inquiry-form__submit:hover:not(:disabled) { background: var(--clear-blue); transform: translateY(-1px); }
+.inquiry-form__submit:disabled { background: #657793; cursor: wait; }
+.inquiry-form__privacy { max-width: 590px; margin: 14px 0 0; color: #526b82; font-size: .79rem; line-height: 1.55; }
+.inquiry-form__spinner { animation: inquiry-spin .8s linear infinite; }
+
+@keyframes inquiry-spin { to { transform: rotate(360deg); } }
+
 @media (max-width: 1080px) {
   .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .manufacturing-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .materials-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .detail-flow, .route-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .inquiry-layout { grid-template-columns: minmax(240px, .6fr) minmax(0, 1.4fr); gap: 34px; }
 }
 @media (max-width: 760px) {
   .page-container, .hero-carousel__content { width: min(100% - 32px, 1200px); }
@@ -428,13 +478,16 @@ h1 {
   .hero-carousel h1 { font-size: clamp(2.75rem, 13vw, 4.4rem); }
   .hero-carousel__controls { right: 16px; bottom: 31px; }
   .carousel-selector { width: 24px; }
-  .metrics-grid, .product-grid, .solutions-grid, .materials-grid, .manufacturing-flow, .factory-grid, .faq-layout, .news-grid, .news-list-grid { grid-template-columns: 1fr; }
-  .inner-page-hero__grid, .product-detail-hero__grid, .detail-split, .detail-card-grid, .detail-card-grid--two, .capability-grid, .process-band__grid, .manufacturing-evidence__grid, .about-story, .faq-page-layout { grid-template-columns: 1fr; }
+  .metrics-grid, .product-grid, .solutions-grid, .materials-grid, .manufacturing-flow, .factory-grid, .faq-layout, .news-grid, .news-list-grid, .contact-details-grid, .inquiry-form__grid { grid-template-columns: 1fr; }
+  .inner-page-hero__grid, .product-detail-hero__grid, .detail-split, .detail-card-grid, .detail-card-grid--two, .capability-grid, .process-band__grid, .manufacturing-evidence__grid, .about-story, .faq-page-layout, .inquiry-layout { grid-template-columns: 1fr; }
   .product-gallery__main { min-height: 390px; }
   .detail-flow, .route-flow { grid-template-columns: 1fr; }
   .specification-list > div, .fact-list > div, .identity-list > div { grid-template-columns: 1fr; gap: 6px; }
   .about-facts { grid-template-columns: 1fr; }
   .faq-page-layout > div:first-child { position: static; }
+  .inquiry-layout__intro { position: static; }
+  .inquiry-form { padding: 22px 18px; border-radius: 20px; }
+  .inquiry-form__submit { width: 100%; }
   .product-card__image-wrap { min-height: 250px; }
   .manufacturing-flow li { min-height: 0; }
   .factory-photo-grid { min-height: 460px; margin-top: 10px; }
