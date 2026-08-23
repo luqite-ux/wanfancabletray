@@ -202,3 +202,9 @@ test("public product readers fall back to verified static data without Supabase 
     else process.env.NEXT_PUBLIC_TENANT_ID = previous.tenant;
   }
 });
+
+test("product cards link the image and title to the product detail route", async () => {
+  const source = await readFile(new URL("../components/product-card.tsx", import.meta.url), "utf8");
+  assert.match(source, /className="product-card__image-link"/);
+  assert.match(source, /className="product-card__title-link"/);
+});
