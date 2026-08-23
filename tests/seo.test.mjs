@@ -94,7 +94,7 @@ test("robots exposes the canonical sitemap and host", async () => {
 
   assert.equal(result.sitemap, "https://wanfancabletray.com/sitemap.xml");
   assert.equal(result.host, "https://wanfancabletray.com");
-  assert.deepEqual(result.rules, { userAgent: "*", allow: "/", disallow: ["/admin/"] });
+  assert.deepEqual(result.rules, { userAgent: "*", allow: "/", disallow: ["/admin/", "/api/"] });
 });
 
 test("Open Graph image route returns a generated PNG response", async () => {

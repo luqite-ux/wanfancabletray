@@ -71,9 +71,23 @@ function redact(text, secrets) {
   return secrets.reduce((safe, secret) => safe.split(secret).join("[REDACTED]"), String(text || ""));
 }
 
+export function spawnDeliveryCommand(command, args, options) {
+  if (process.platform === "win32") {
+    return spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", command, ...args], options);
+  }
+  return spawnSync(command, args, options);
+}
+
+export function buildEnvironmentAddArguments(name, target) {
+  const args = ["env", "add", name, target, "--force", "--team", TEAM_ID];
+  if (name.startsWith("NEXT_PUBLIC_")) args.push("--visibility", "config", "--no-sensitive");
+  else args.push("--visibility", "secret");
+  return args;
+}
+
 function runVercel(args, { input, environment, secrets }) {
   const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-  const result = spawnSync(command, ["dlx", "vercel@latest", ...args], {
+  const result = spawnDeliveryCommand(command, ["dlx", "vercel@latest", ...args], {
     cwd: ROOT,
     encoding: "utf8",
     env: { ...process.env, ...environment, NO_COLOR: "1" },
@@ -101,8 +115,7 @@ async function applySetup(values, environment) {
 
   for (const [name, value] of Object.entries(values)) {
     for (const target of ENVIRONMENTS) {
-      const args = ["env", "add", name, target, "--force", "--team", TEAM_ID];
-      if (target === "preview") args.push("--git-branch", "main");
+      const args = buildEnvironmentAddArguments(name, target);
       runVercel(args, { input: `${value}\n`, environment: cliEnvironment, secrets });
     }
   }
@@ -145,7 +158,7 @@ export async function main(args = process.argv.slice(2), environment = process.e
       name,
       present: Boolean(values[name]),
       targets: ENVIRONMENTS,
-      previewBranch: "main",
+      previewBranch: null,
     })),
     valuesPrinted: false,
   };

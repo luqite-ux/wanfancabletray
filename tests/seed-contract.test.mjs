@@ -279,11 +279,53 @@ test("Vercel setup defaults to dry-run, targets the company team, and never prin
     "SUPABASE_SERVICE_ROLE_KEY",
   ]);
   assert.ok(report.environmentVariables.every((item) => item.present === true));
+  assert.ok(report.environmentVariables.every((item) => item.previewBranch === null));
 
   const output = `${result.stdout}\n${result.stderr}`;
   for (const secret of Object.values(sentinels)) {
     assert.doesNotMatch(output, new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+});
+
+test("Vercel CLI launcher executes Windows command shims with piped input", { skip: process.platform !== "win32" }, async () => {
+  const { spawnDeliveryCommand } = await import("../scripts/setup-vercel-project.mjs");
+  assert.equal(typeof spawnDeliveryCommand, "function");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "wanfan-cli-shim-"));
+  const shim = path.join(directory, "fixture.cmd");
+  fs.writeFileSync(
+    shim,
+    "@echo off\r\nset /p PAYLOAD=\r\necho %1^|%PAYLOAD%\r\n",
+    "utf8",
+  );
+  try {
+    const result = spawnDeliveryCommand(shim, ["argument"], {
+      cwd: directory,
+      encoding: "utf8",
+      env: process.env,
+      input: "piped-value\n",
+    });
+    assert.equal(result.status, 0, result.error?.message || result.stderr);
+    assert.match(result.stdout, /argument\|piped-value/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("Vercel environment arguments keep public values configurable and the service role secret", async () => {
+  const { buildEnvironmentAddArguments } = await import("../scripts/setup-vercel-project.mjs");
+  assert.equal(typeof buildEnvironmentAddArguments, "function");
+  assert.deepEqual(
+    buildEnvironmentAddArguments("NEXT_PUBLIC_SUPABASE_URL", "production"),
+    ["env", "add", "NEXT_PUBLIC_SUPABASE_URL", "production", "--force", "--team", "team_v0pxRIIzSUGJleUTRNSz6GS4", "--visibility", "config", "--no-sensitive"],
+  );
+  assert.deepEqual(
+    buildEnvironmentAddArguments("NEXT_PUBLIC_TENANT_ID", "preview"),
+    ["env", "add", "NEXT_PUBLIC_TENANT_ID", "preview", "--force", "--team", "team_v0pxRIIzSUGJleUTRNSz6GS4", "--visibility", "config", "--no-sensitive"],
+  );
+  assert.deepEqual(
+    buildEnvironmentAddArguments("SUPABASE_SERVICE_ROLE_KEY", "development"),
+    ["env", "add", "SUPABASE_SERVICE_ROLE_KEY", "development", "--force", "--team", "team_v0pxRIIzSUGJleUTRNSz6GS4", "--visibility", "secret"],
+  );
 });
 
 test("Vercel setup rejects an unapproved HTTPS admin origin before any mutation", () => {

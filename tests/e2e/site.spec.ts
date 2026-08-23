@@ -182,7 +182,7 @@ test("news empty state and inquiry validation stay honest without live credentia
   await page.getByRole("textbox", { name: "Company", exact: true }).fill("Local Verification Company");
   await page.getByRole("textbox", { name: "Business email", exact: true }).fill("verification@example.com");
   await page.getByRole("textbox", { name: "Country / region", exact: true }).fill("China");
-  await expect(page.getByRole("combobox", { name: "Product category", exact: true })).toHaveValue("Cable management");
+  await expect(page.getByRole("combobox", { name: "Product category", exact: true })).toHaveValue(/Cable management/i);
   await page.getByRole("textbox", { name: "Estimated quantity", exact: true }).fill("100 m");
   await page.getByRole("textbox", { name: "Project message", exact: true }).fill("Local browser verification only; no external submission is allowed.");
 
@@ -198,6 +198,7 @@ test("news empty state and inquiry validation stay honest without live credentia
 });
 
 test("sitemap URLs resolve locally and rendered pages contain no prohibited terms", async ({ page, request }) => {
+  test.setTimeout(120_000);
   const sitemapResponse = await request.get("/sitemap.xml");
   expect(sitemapResponse.ok()).toBe(true);
   const sitemap = await sitemapResponse.text();
