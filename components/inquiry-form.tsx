@@ -2,7 +2,12 @@
 
 import { useId, useState, type FormEvent } from "react";
 import { AlertCircle, CheckCircle2, LoaderCircle, UploadCloud } from "lucide-react";
-import { INQUIRY_ATTACHMENT_ACCEPT, inquiryCategories } from "@/lib/inquiry";
+import {
+  INQUIRY_ATTACHMENT_ACCEPT,
+  inquiryCategories,
+  isInquiryAttachment,
+  validateInquiryAttachment,
+} from "@/lib/inquiry-shared";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -14,6 +19,10 @@ type InquirySubmissionResult =
 const defaultSubmissionError = "We could not submit your inquiry. Please try again or contact us directly.";
 
 export async function submitInquiryForm(formData: FormData, fetcher: Fetcher = fetch): Promise<InquirySubmissionResult> {
+  const attachment = formData.get("attachment");
+  const attachmentError = isInquiryAttachment(attachment) ? validateInquiryAttachment(attachment) : null;
+  if (attachmentError) return { ok: false, error: attachmentError };
+
   try {
     const response = await fetcher("/api/inquiries", { method: "POST", body: formData });
     const result = await response.json().catch(() => null) as Partial<InquirySubmissionResult> | null;

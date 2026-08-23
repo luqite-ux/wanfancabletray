@@ -5,9 +5,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   buildInquiryRecord,
   handleInquiryPost,
+  inquiryAttachmentPrefix,
   normalizeInquiryPayload,
 } from "../lib/inquiry.ts";
 import { InquiryForm, submitInquiryForm } from "../components/inquiry-form.tsx";
+import { validateInquiryAttachment } from "../lib/inquiry-shared.ts";
 import { buildSitemapEntries } from "../lib/sitemap.ts";
 
 const validInput = {
@@ -33,7 +35,7 @@ function formDataFrom(input) {
   return formData;
 }
 
-function createInquiryClient({ insertError = null, uploadError = null } = {}) {
+function createInquiryClient({ insertError = null, insertThrows = false, uploadError = null, removeError = null, removeThrows = false } = {}) {
   const state = { inserted: [], uploads: [], removals: [] };
   const client = {
     from(table) {
@@ -41,6 +43,7 @@ function createInquiryClient({ insertError = null, uploadError = null } = {}) {
       return {
         async insert(record) {
           state.inserted.push(record);
+          if (insertThrows) throw new Error("insert unavailable");
           return { data: null, error: insertError };
         },
       };
@@ -55,7 +58,8 @@ function createInquiryClient({ insertError = null, uploadError = null } = {}) {
           },
           async remove(paths) {
             state.removals.push(paths);
-            return { data: paths, error: null };
+            if (removeThrows) throw new Error("remove unavailable");
+            return { data: removeError ? null : paths, error: removeError };
           },
         };
       },
@@ -128,6 +132,17 @@ test("accepts a safe optional drawing and rejects unsafe type and excessive size
   assert.throws(() => normalizeInquiryPayload(excessive), /Invalid inquiry payload/);
 });
 
+test("shared attachment rules return client-safe errors for extension, MIME and size", () => {
+  const safe = new File(["drawing"], "project.pdf", { type: "application/pdf" });
+  assert.equal(validateInquiryAttachment(safe), null);
+  assert.equal(validateInquiryAttachment(new File(["markup"], "drawing.html", { type: "text/html" })), "Attach a PDF, DWG, DXF, PNG, JPG, or JPEG file.");
+  assert.equal(validateInquiryAttachment(new File(["drawing"], "drawing.pdf", { type: "text/html" })), "The attachment file type does not match its extension.");
+  assert.equal(
+    validateInquiryAttachment(new File([new Uint8Array(10 * 1024 * 1024 + 1)], "large.pdf", { type: "application/pdf" })),
+    "Attachments must be 10 MB or smaller.",
+  );
+});
+
 test("builds the exact tenant-scoped database record with project context", () => {
   const record = buildInquiryRecord(normalizeInquiryPayload(validInput), {
     inquiryId: "7b268c44-ef37-4b27-97e6-70c9faf50dd7",
@@ -173,6 +188,7 @@ test("API uploads an optional attachment and inserts one exact-tenant inquiry", 
     client,
     tenantId: "tenant-wanfan",
     createInquiryId: () => "7b268c44-ef37-4b27-97e6-70c9faf50dd7",
+    createAttachmentToken: () => "671cdd06-29ac-4fca-9ea7-5cd9353d758e",
   });
 
   assert.equal(response.status, 200);
@@ -181,9 +197,81 @@ test("API uploads an optional attachment and inserts one exact-tenant inquiry", 
   assert.equal(state.inserted[0].tenant_id, "tenant-wanfan");
   assert.equal(state.inserted[0].status, "unread");
   assert.equal(state.uploads.length, 1);
-  assert.equal(state.uploads[0].path, "tenant-wanfan/7b268c44-ef37-4b27-97e6-70c9faf50dd7/Project-Drawing-A1.pdf");
+  assert.equal(state.uploads[0].path, "tenant-wanfan/671cdd06-29ac-4fca-9ea7-5cd9353d758e/Project-Drawing-A1.pdf");
   assert.equal(state.uploads[0].options.contentType, "application/pdf");
-  assert.match(state.inserted[0].message, /Attachment Path: tenant-wanfan\/7b268c44-ef37-4b27-97e6-70c9faf50dd7\/Project-Drawing-A1\.pdf/);
+  assert.match(state.inserted[0].message, /Attachment Path: tenant-wanfan\/671cdd06-29ac-4fca-9ea7-5cd9353d758e\/Project-Drawing-A1\.pdf/);
+});
+
+test("attachment insert failure removes the uploaded object before returning the standard failure", async () => {
+  const { client, state } = createInquiryClient({ insertError: { message: "insert unavailable" } });
+  const formData = formDataFrom(validInput);
+  formData.set("attachment", new File(["drawing"], "project.pdf", { type: "application/pdf" }));
+  const response = await handleInquiryPost(new Request("https://wanfancabletray.com/api/inquiries", { method: "POST", body: formData }), {
+    client,
+    tenantId: "tenant-wanfan",
+    createInquiryId: () => "7b268c44-ef37-4b27-97e6-70c9faf50dd7",
+    createAttachmentToken: () => "671cdd06-29ac-4fca-9ea7-5cd9353d758e",
+  });
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), { ok: false, error: "We could not submit your inquiry. Please try again or contact us directly." });
+  assert.deepEqual(state.removals, [["tenant-wanfan/671cdd06-29ac-4fca-9ea7-5cd9353d758e/project.pdf"]]);
+});
+
+test("thrown attachment insert failures still execute the recovery cleanup path", async () => {
+  const { client, state } = createInquiryClient({ insertThrows: true });
+  const formData = formDataFrom(validInput);
+  formData.set("attachment", new File(["drawing"], "project.pdf", { type: "application/pdf" }));
+  const response = await handleInquiryPost(new Request("https://wanfancabletray.com/api/inquiries", { method: "POST", body: formData }), {
+    client,
+    tenantId: "tenant-wanfan",
+    createAttachmentToken: () => "671cdd06-29ac-4fca-9ea7-5cd9353d758e",
+  });
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(state.removals, [["tenant-wanfan/671cdd06-29ac-4fca-9ea7-5cd9353d758e/project.pdf"]]);
+});
+
+test("attachment cleanup failure returns a distinct correlation token and deterministic recovery prefix", async () => {
+  const { client, state } = createInquiryClient({
+    insertError: { message: "insert unavailable" },
+    removeError: { message: "remove unavailable" },
+  });
+  const formData = formDataFrom(validInput);
+  formData.set("attachment", new File(["drawing"], "project.pdf", { type: "application/pdf" }));
+  const correlationId = "671cdd06-29ac-4fca-9ea7-5cd9353d758e";
+  const response = await handleInquiryPost(new Request("https://wanfancabletray.com/api/inquiries", { method: "POST", body: formData }), {
+    client,
+    tenantId: "tenant-wanfan",
+    createInquiryId: () => "7b268c44-ef37-4b27-97e6-70c9faf50dd7",
+    createAttachmentToken: () => correlationId,
+  });
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    code: "ATTACHMENT_CLEANUP_REQUIRED",
+    correlationId,
+    error: `Your inquiry was not submitted, and the attachment needs manual cleanup. Contact us with reference ${correlationId}.`,
+  });
+  assert.equal(inquiryAttachmentPrefix("tenant-wanfan", correlationId), `tenant-wanfan/${correlationId}`);
+  assert.deepEqual(state.removals, [[`tenant-wanfan/${correlationId}/project.pdf`]]);
+});
+
+test("thrown attachment cleanup failures use the same recoverable operational response", async () => {
+  const { client } = createInquiryClient({ insertError: { message: "insert unavailable" }, removeThrows: true });
+  const formData = formDataFrom(validInput);
+  formData.set("attachment", new File(["drawing"], "project.pdf", { type: "application/pdf" }));
+  const correlationId = "99c69da4-5e15-4795-8410-6e290f08bf6e";
+  const response = await handleInquiryPost(new Request("https://wanfancabletray.com/api/inquiries", { method: "POST", body: formData }), {
+    client,
+    tenantId: "tenant-wanfan",
+    createAttachmentToken: () => correlationId,
+  });
+
+  const result = await response.json();
+  assert.equal(result.code, "ATTACHMENT_CLEANUP_REQUIRED");
+  assert.equal(result.correlationId, correlationId);
 });
 
 test("API returns stable validation, configuration, upload and insert errors without false success", async () => {
@@ -241,10 +329,29 @@ test("shared form renders every required field, optional project fields, prefill
   assert.match(html, /accept="\.pdf,\.dwg,\.dxf,\.png,\.jpg,\.jpeg"/i);
 });
 
-test("form request helper reports success and preserves server and network errors", async () => {
-  const formData = formDataFrom(validInput);
-  const success = await submitInquiryForm(formData, async () => Response.json({ ok: true, inquiryId: "inq-123" }));
+test("form request helper rejects unsafe attachments before fetch and still submits valid files", async () => {
+  let fetchCalls = 0;
+  const invalid = formDataFrom(validInput);
+  invalid.set("attachment", new File(["markup"], "drawing.html", { type: "text/html" }));
+  const invalidResult = await submitInquiryForm(invalid, async () => {
+    fetchCalls += 1;
+    return Response.json({ ok: true, inquiryId: "unexpected" });
+  });
+  assert.deepEqual(invalidResult, { ok: false, error: "Attach a PDF, DWG, DXF, PNG, JPG, or JPEG file." });
+  assert.equal(fetchCalls, 0);
+
+  const valid = formDataFrom(validInput);
+  valid.set("attachment", new File(["drawing"], "project.pdf", { type: "application/pdf" }));
+  const success = await submitInquiryForm(valid, async () => {
+    fetchCalls += 1;
+    return Response.json({ ok: true, inquiryId: "inq-123" });
+  });
   assert.deepEqual(success, { ok: true, inquiryId: "inq-123" });
+  assert.equal(fetchCalls, 1);
+});
+
+test("form request helper preserves server and network errors", async () => {
+  const formData = formDataFrom(validInput);
 
   const serverError = await submitInquiryForm(formData, async () => Response.json(
     { ok: false, error: "Please check the attachment." },

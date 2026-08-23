@@ -1,26 +1,10 @@
 import { z } from "zod";
+import {
+  isInquiryAttachment,
+  validateInquiryAttachment,
+} from "@/lib/inquiry-shared";
 
-export const MAX_INQUIRY_ATTACHMENT_BYTES = 10 * 1024 * 1024;
-export const INQUIRY_ATTACHMENT_ACCEPT = ".pdf,.dwg,.dxf,.png,.jpg,.jpeg";
 export const INQUIRY_ATTACHMENT_BUCKET = "inquiry-attachments";
-export const inquiryCategories = [
-  "Cable management",
-  "Structural supports",
-  "Conduit systems",
-  "Stainless components",
-  "Not sure yet",
-] as const;
-
-const allowedAttachmentExtensions = new Set(["pdf", "dwg", "dxf", "png", "jpg", "jpeg"]);
-const allowedAttachmentTypes = new Set([
-  "application/pdf",
-  "application/acad",
-  "application/x-acad",
-  "application/dwg",
-  "application/dxf",
-  "image/png",
-  "image/jpeg",
-]);
 
 function trimmedString(minimum: number, maximum: number) {
   return z.preprocess(
@@ -46,20 +30,10 @@ function isRealDate(value: string) {
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-function isFile(value: unknown): value is File {
-  return typeof File !== "undefined" && value instanceof File;
-}
-
-function attachmentExtension(file: File) {
-  return file.name.split(".").pop()?.toLowerCase() || "";
-}
-
 const inquiryAttachmentSchema = z.preprocess(
-  (value) => isFile(value) && value.size === 0 ? undefined : value,
-  z.custom<File>(isFile)
-    .refine((file) => file.size <= MAX_INQUIRY_ATTACHMENT_BYTES)
-    .refine((file) => allowedAttachmentExtensions.has(attachmentExtension(file)))
-    .refine((file) => !file.type || allowedAttachmentTypes.has(file.type))
+  (value) => isInquiryAttachment(value) && value.size === 0 ? undefined : value,
+  z.custom<File>(isInquiryAttachment)
+    .refine((file) => validateInquiryAttachment(file) === null)
     .optional(),
 );
 
@@ -117,6 +91,20 @@ export function safeInquiryAttachmentName(name: string) {
     .replace(/^-+|-+$/g, "") || "attachment";
   const extension = originalExtension.replace(/[^A-Za-z0-9]+/g, "").toLowerCase();
   return extension ? `${base}.${extension}` : base;
+}
+
+function safePathSegment(value: string, label: string) {
+  const trimmed = value.trim();
+  if (!/^[A-Za-z0-9-]+$/.test(trimmed)) throw new Error(`${label} is not a safe storage path segment.`);
+  return trimmed;
+}
+
+export function inquiryAttachmentPrefix(tenantId: string, correlationId: string) {
+  return `${safePathSegment(tenantId, "Tenant ID")}/${safePathSegment(correlationId, "Correlation ID")}`;
+}
+
+export function buildInquiryAttachmentPath(tenantId: string, correlationId: string, fileName: string) {
+  return `${inquiryAttachmentPrefix(tenantId, correlationId)}/${safeInquiryAttachmentName(fileName)}`;
 }
 
 interface InquiryRecordContext {
@@ -177,6 +165,7 @@ interface InquiryRouteDependencies {
   client: InquiryClient | null;
   tenantId: string;
   createInquiryId?: () => string;
+  createAttachmentToken?: () => string;
 }
 
 const validationError = "Please complete all required inquiry fields with valid information.";
@@ -207,10 +196,13 @@ export async function handleInquiryPost(request: Request, dependencies: InquiryR
   }
 
   const inquiryId = dependencies.createInquiryId ? dependencies.createInquiryId() : crypto.randomUUID();
+  const attachmentToken = payload.attachment
+    ? dependencies.createAttachmentToken ? dependencies.createAttachmentToken() : crypto.randomUUID()
+    : undefined;
   let attachmentPath: string | undefined;
 
-  if (payload.attachment) {
-    attachmentPath = `${tenantId}/${inquiryId}/${safeInquiryAttachmentName(payload.attachment.name)}`;
+  if (payload.attachment && attachmentToken) {
+    attachmentPath = buildInquiryAttachmentPath(tenantId, attachmentToken, payload.attachment.name);
     const { error } = await dependencies.client.storage
       .from(INQUIRY_ATTACHMENT_BUCKET)
       .upload(
@@ -228,11 +220,29 @@ export async function handleInquiryPost(request: Request, dependencies: InquiryR
   }
 
   const record = buildInquiryRecord(payload, { inquiryId, tenantId, attachmentPath });
-  const { error } = await dependencies.client.from("inquiries").insert(record);
+  let insertError: unknown;
+  try {
+    insertError = (await dependencies.client.from("inquiries").insert(record)).error;
+  } catch (caught) {
+    insertError = caught;
+  }
 
-  if (error) {
+  if (insertError) {
     if (attachmentPath) {
-      await dependencies.client.storage.from(INQUIRY_ATTACHMENT_BUCKET).remove([attachmentPath]);
+      let cleanupError: unknown;
+      try {
+        cleanupError = (await dependencies.client.storage.from(INQUIRY_ATTACHMENT_BUCKET).remove([attachmentPath])).error;
+      } catch (caught) {
+        cleanupError = caught;
+      }
+      if (cleanupError && attachmentToken) {
+        return Response.json({
+          ok: false,
+          code: "ATTACHMENT_CLEANUP_REQUIRED",
+          correlationId: attachmentToken,
+          error: `Your inquiry was not submitted, and the attachment needs manual cleanup. Contact us with reference ${attachmentToken}.`,
+        }, { status: 500 });
+      }
     }
     return Response.json(
       { ok: false, error: "We could not submit your inquiry. Please try again or contact us directly." },

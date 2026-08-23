@@ -2,10 +2,10 @@ import {
   handleInquiryPost,
   type InquiryClient,
 } from "@/lib/inquiry";
-import { getSupabaseServerClient } from "@/lib/supabase";
+import { getPrivilegedSupabaseClient } from "@/lib/supabase-privileged";
 
 export async function POST(request: Request) {
-  const client = getSupabaseServerClient();
+  const client = getPrivilegedSupabaseClient();
   return handleInquiryPost(request, {
     client: client as unknown as InquiryClient | null,
     tenantId: process.env.NEXT_PUBLIC_TENANT_ID || "",
