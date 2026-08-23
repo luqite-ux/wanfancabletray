@@ -8,6 +8,7 @@ import {
   isInquiryAttachment,
   validateInquiryAttachment,
 } from "@/lib/inquiry-shared";
+import { InquiryCaptchaField } from "@/components/inquiry-captcha-field";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -48,6 +49,7 @@ export function InquiryForm({ initialProduct = "", initialCategory = "" }: Inqui
   const id = useId();
   const [state, setState] = useState<SubmissionState>("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [captchaRefreshKey, setCaptchaRefreshKey] = useState(0);
   const categoryOptions = initialCategory && !inquiryCategories.includes(initialCategory as typeof inquiryCategories[number])
     ? [initialCategory, ...inquiryCategories]
     : inquiryCategories;
@@ -59,6 +61,7 @@ export function InquiryForm({ initialProduct = "", initialCategory = "" }: Inqui
     setStatusMessage("Submitting your inquiry…");
 
     const result = await submitInquiryForm(new FormData(form));
+    setCaptchaRefreshKey((value) => value + 1);
     if (!result.ok) {
       setState("error");
       setStatusMessage(result.error);
@@ -116,6 +119,8 @@ export function InquiryForm({ initialProduct = "", initialCategory = "" }: Inqui
           placeholder="Describe the project, required configuration, drawing references, destination and any points that need review."
         />
       </label>
+
+      <InquiryCaptchaField className="inquiry-captcha" refreshKey={captchaRefreshKey} />
 
       <div aria-atomic="true" aria-live="polite" className="inquiry-form__status">
         {statusMessage ? (

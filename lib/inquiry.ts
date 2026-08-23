@@ -3,6 +3,10 @@ import {
   isInquiryAttachment,
   validateInquiryAttachment,
 } from "@/lib/inquiry-shared";
+import {
+  verifyCaptchaSubmission,
+  type CaptchaChallengeStore,
+} from "@/lib/inquiry-captcha";
 
 export const INQUIRY_ATTACHMENT_BUCKET = "inquiry-attachments";
 
@@ -164,6 +168,10 @@ export interface InquiryClient {
 interface InquiryRouteDependencies {
   client: InquiryClient | null;
   tenantId: string;
+  captchaSecret: string;
+  captchaSiteScope: string;
+  captchaStore: CaptchaChallengeStore;
+  verifyCaptcha?: typeof verifyCaptchaSubmission;
   createInquiryId?: () => string;
   createAttachmentToken?: () => string;
 }
@@ -181,8 +189,10 @@ async function requestPayload(request: Request) {
 
 export async function handleInquiryPost(request: Request, dependencies: InquiryRouteDependencies) {
   let payload;
+  let rawPayload: FormData | Record<string, unknown>;
   try {
-    payload = normalizeInquiryPayload(await requestPayload(request));
+    rawPayload = await requestPayload(request);
+    payload = normalizeInquiryPayload(rawPayload);
   } catch {
     return Response.json({ ok: false, error: validationError }, { status: 400 });
   }
@@ -192,6 +202,26 @@ export async function handleInquiryPost(request: Request, dependencies: InquiryR
     return Response.json(
       { ok: false, error: "Inquiry service is temporarily unavailable." },
       { status: 503 },
+    );
+  }
+
+  const captchaValue = (name: string) => {
+    const value = rawPayload instanceof FormData ? rawPayload.get(name) : rawPayload[name];
+    return typeof value === "string" ? value : "";
+  };
+  const captcha = await (dependencies.verifyCaptcha ?? verifyCaptchaSubmission)({
+    secret: dependencies.captchaSecret,
+    tenantId,
+    siteScope: dependencies.captchaSiteScope,
+    scope: captchaValue("captchaScope"),
+    token: captchaValue("captchaToken"),
+    answer: captchaValue("captchaAnswer"),
+    store: dependencies.captchaStore,
+  });
+  if (!captcha.ok) {
+    return Response.json(
+      { ok: false, error: captcha.code === "expired" ? "The verification code expired. Please refresh it and try again." : "The verification code is incorrect. Please try again." },
+      { status: 400 },
     );
   }
 

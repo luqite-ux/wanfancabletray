@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   buildInquiryRecord,
-  handleInquiryPost,
+  handleInquiryPost as handleInquiryPostRaw,
   inquiryAttachmentPrefix,
   normalizeInquiryPayload,
 } from "../lib/inquiry.ts";
@@ -28,6 +28,16 @@ const validInput = {
   application: "  Commercial building  ",
   targetDeliveryDate: "  2026-11-30  ",
 };
+
+function handleInquiryPost(request, dependencies) {
+  return handleInquiryPostRaw(request, {
+    captchaSecret: "test-secret-with-at-least-thirty-two-characters",
+    captchaSiteScope: "wanfancabletray.com",
+    captchaStore: { issue() {}, consume() { return true; } },
+    verifyCaptcha: async () => ({ ok: true }),
+    ...dependencies,
+  });
+}
 
 function formDataFrom(input) {
   const formData = new FormData();
