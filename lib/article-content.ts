@@ -134,13 +134,13 @@ function transformColumnGroup(_tagName: string, attributes: Record<string, strin
 function transformCell(tagName: string, attributes: Record<string, string>) {
   const colspan = safePositiveInteger(attributes.colspan, 100);
   const rowspan = safePositiveInteger(attributes.rowspan, 100);
-  const colwidth = safeColumnWidths(attributes.colwidth);
+  const colwidth = safeColumnWidths(attributes["data-colwidth"]);
   return {
     tagName,
     attribs: {
       ...(colspan ? { colspan } : {}),
       ...(rowspan ? { rowspan } : {}),
-      ...(colwidth ? { colwidth } : {}),
+      ...(colwidth ? { "data-colwidth": colwidth } : {}),
       ...(attributes.style ? { style: attributes.style } : {}),
     },
   };
@@ -184,8 +184,8 @@ export function sanitizeArticleContent(value: string) {
       table: ["style"],
       colgroup: ["span"],
       col: ["width", "span", "style"],
-      th: ["colspan", "rowspan", "colwidth", "style"],
-      td: ["colspan", "rowspan", "colwidth", "style"],
+      th: ["colspan", "rowspan", "data-colwidth", "style"],
+      td: ["colspan", "rowspan", "data-colwidth", "style"],
     },
     allowedStyles: {
       a: { color: approvedColorValues },

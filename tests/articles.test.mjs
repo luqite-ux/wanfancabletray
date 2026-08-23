@@ -157,7 +157,7 @@ test("article detail preserves safe shared-admin Tiptap images, marks, text styl
         '<h2 style="text-align: center">Drawing review</h2>',
         '<p style="text-align: right"><span style="color: #2563eb; font-size: 18px">Styled text</span> <mark>Highlighted</mark> <a href="https://example.com/spec" target="_blank" rel="noopener noreferrer nofollow" style="color: #16a34a">Specification</a></p>',
         '<img src="https://pub-wanfan.r2.dev/articles/line.jpg" alt="Cable tray line" title="Workshop" width="1280" height="720" class="max-w-full rounded">',
-        '<table style="min-width: 150px"><colgroup><col style="width: 100px"><col width="50" span="2" style="min-width: 25px"></colgroup><tbody><tr><th colspan="2" rowspan="1" colwidth="100,50" style="text-align: center"><p>Header</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="100" style="text-align: right"><p>Value</p></td></tr></tbody></table>',
+        '<table style="min-width: 150px"><colgroup><col style="width: 100px"><col width="50" span="2" style="min-width: 25px"></colgroup><tbody><tr><th colspan="2" rowspan="1" data-colwidth="100, 50" style="text-align: center"><p>Header</p></th></tr><tr><td colspan="1" rowspan="1" data-colwidth="100" style="text-align: right"><p>Value</p></td></tr></tbody></table>',
       ].join(""),
     },
   }, "en");
@@ -169,7 +169,8 @@ test("article detail preserves safe shared-admin Tiptap images, marks, text styl
   assert.match(html, /<a (?=[^>]*href="https:\/\/example\.com\/spec")(?=[^>]*target="_blank")(?=[^>]*rel="noopener noreferrer nofollow")(?=[^>]*style="color:\s*#16a34a")[^>]*>Specification<\/a>/);
   assert.match(html, /<img (?=[^>]*src="https:\/\/pub-wanfan\.r2\.dev\/articles\/line\.jpg")(?=[^>]*alt="Cable tray line")(?=[^>]*title="Workshop")(?=[^>]*width="1280")(?=[^>]*height="720")[^>]*>/);
   assert.match(html, /<table style="min-width:\s*150px"><colgroup><col style="width:\s*100px"\s*\/><col (?=[^>]*width="50")(?=[^>]*span="2")(?=[^>]*style="min-width:\s*25px")[^>]*\/><\/colgroup>/);
-  assert.match(html, /<th (?=[^>]*colspan="2")(?=[^>]*rowspan="1")(?=[^>]*colwidth="100,50")(?=[^>]*style="text-align:\s*center")[^>]*>/);
+  assert.match(html, /<th (?=[^>]*colspan="2")(?=[^>]*rowspan="1")(?=[^>]*data-colwidth="100,50")(?=[^>]*style="text-align:\s*center")[^>]*>/);
+  assert.match(html, /<td (?=[^>]*colspan="1")(?=[^>]*rowspan="1")(?=[^>]*data-colwidth="100")(?=[^>]*style="text-align:\s*right")[^>]*>/);
 });
 
 test("article detail removes unsafe Tiptap URLs, event handlers, dimensions, and CSS while retaining safe content", () => {
@@ -183,7 +184,7 @@ test("article detail removes unsafe Tiptap URLs, event handlers, dimensions, and
         '<a href="javascript:alert(4)" target="_self" rel="opener" style="color: expression(alert(5))" onmouseover="steal()">Bad link</a>',
         '<img src="data:image/svg+xml,&lt;svg onload=alert(6)&gt;" alt="Blocked data image"><img src="javascript:alert(7)" alt="Blocked script image"><img src="http://example.com/blocked.jpg" alt="Blocked HTTP image">',
         '<img src="https://pub-wanfan.r2.dev/articles/clean.jpg" alt="Clean image" width="99999" height="auto" style="background-image:url(javascript:alert(8))" onerror="steal()">',
-        '<table style="width: calc(100% + 1px); background: url(javascript:alert(9))" onload="steal()"><colgroup span="999"><col width="javascript:alert(10)" span="999" style="width: expression(alert(11))"></colgroup><tbody><tr><td colspan="9999" rowspan="0" colwidth="100,javascript" style="text-align: expression(alert(12))">Readable cell</td></tr></tbody></table>',
+        '<table style="width: calc(100% + 1px); background: url(javascript:alert(9))" onload="steal()"><colgroup span="999"><col width="javascript:alert(10)" span="999" style="width: expression(alert(11))"></colgroup><tbody><tr><td colspan="9999" rowspan="0" data-colwidth="100,javascript" style="text-align: expression(alert(12))">Readable cell</td></tr></tbody></table>',
       ].join(""),
     },
   }, "en");
@@ -196,7 +197,7 @@ test("article detail removes unsafe Tiptap URLs, event handlers, dimensions, and
   assert.match(cleanImage, /src="https:\/\/pub-wanfan\.r2\.dev\/articles\/clean\.jpg"/);
   assert.match(cleanImage, /alt="Clean image"/);
   assert.doesNotMatch(cleanImage, /width=|height=|style=|onerror=/i);
-  assert.doesNotMatch(html, /<script|onclick|onmouseover|onerror|onload|javascript:|data:image|src="http:\/\/|expression\(|position\s*:|background(?:-image)?\s*:|font-size:\s*999px|span="999"|colspan="9999"|colwidth="[^"]*javascript/i);
+  assert.doesNotMatch(html, /<script|onclick|onmouseover|onerror|onload|javascript:|data:image|src="http:\/\/|expression\(|position\s*:|background(?:-image)?\s*:|font-size:\s*999px|span="999"|colspan="9999"|data-colwidth="[^"]*javascript/i);
   assert.doesNotMatch(html, /Blocked data image|Blocked script image|Blocked HTTP image/);
 });
 
