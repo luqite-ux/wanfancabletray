@@ -29,8 +29,14 @@ test("product detail renders the full decision path and prefilled inquiry CTA", 
   for (const heading of ["Overview", "Materials and surfaces", "Specifications", "Applications", "Customization flow", "Related products"]) {
     assert.match(html, new RegExp(heading, "i"));
   }
-  assert.match(html, /href="\/request-a-quote\?product=cable-tray-systems"/);
+  assert.equal((html.match(/href="\/request-a-quote\?product=cable-tray-systems"/g) ?? []).length, 3);
+  assert.doesNotMatch(html, /href="mailto:/i);
   assert.match(metadata.openGraph.images[0].url, /^https:\/\/wanfancabletray\.com\//);
+  const jsonLdSource = html.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1];
+  assert.ok(jsonLdSource, "Product JSON-LD should be rendered");
+  const jsonLd = JSON.parse(jsonLdSource);
+  assert.equal(jsonLd.image.length > 0, true);
+  assert.equal(jsonLd.image.every((url) => /^https:\/\/wanfancabletray\.com\//.test(url)), true);
   assert.doesNotMatch(html, /\b(?:price|cart|payment|warrant(?:y|ies)|guarantee(?:d|s)?)\b/i);
 });
 
@@ -90,4 +96,44 @@ test("independent listing and company routes expose unique canonical and Open Gr
   }
 
   assert.equal(new Set(titles).size, routeNames.length);
+});
+
+test("public manufacturing views render production facts from shared site data", async () => {
+  const [{ default: HomePage }, { default: AboutPage }, { default: ManufacturingPage }, { productionFacts }] = await Promise.all([
+    import("../app/page.tsx"),
+    import("../app/about/page.tsx"),
+    import("../app/manufacturing/page.tsx"),
+    import("../lib/site-data.ts"),
+  ]);
+  const original = {
+    area: productionFacts.facilityArea.display,
+    machines: productionFacts.machineCount.display,
+    days: productionFacts.productionWindow.days,
+    qualifier: productionFacts.productionWindow.qualifier,
+    display: productionFacts.productionWindow.display,
+  };
+
+  productionFacts.facilityArea.display = "≈4,321 m²";
+  productionFacts.machineCount.display = "≈76";
+  productionFacts.productionWindow.days = "7–9 days";
+  productionFacts.productionWindow.qualifier = "subject to test confirmation";
+  productionFacts.productionWindow.display = "7–9 days, subject to test confirmation";
+
+  try {
+    const home = await renderPage(HomePage);
+    const about = await renderPage(AboutPage);
+    const manufacturing = await renderPage(ManufacturingPage);
+    for (const html of [home, about, manufacturing]) {
+      assert.match(html, /≈4,321 m²/);
+      assert.match(html, /≈76/);
+      assert.match(html, /7–9 days/);
+    }
+    assert.match(manufacturing, /subject to test confirmation/);
+  } finally {
+    productionFacts.facilityArea.display = original.area;
+    productionFacts.machineCount.display = original.machines;
+    productionFacts.productionWindow.days = original.days;
+    productionFacts.productionWindow.qualifier = original.qualifier;
+    productionFacts.productionWindow.display = original.display;
+  }
 });

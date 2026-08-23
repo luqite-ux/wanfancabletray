@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Aluminum cable trunking profile</title>
+  <desc id="desc">A clean engineering illustration of a rectangular cable trunking channel and removable cover.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M150 182v142h420V182" fill="none" stroke="#25358f" stroke-linecap="round" stroke-linejoin="round" stroke-width="22"/>
+  <path d="M126 142h468v52H126z" fill="#dff6ff" stroke="#0878d1" stroke-linejoin="round" stroke-width="16"/>
+  <path d="M205 225h310M205 270h310" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="10"/>
+  <path d="M180 354h360" fill="none" stroke="#10233f" stroke-linecap="round" stroke-width="8"/>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">ALUMINUM CABLE TRUNKING</text>
+</svg>

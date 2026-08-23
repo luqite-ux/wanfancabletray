@@ -8,6 +8,7 @@
   --mist: #edf7ff;
   --surface: #ffffff;
   --focus-ring: #006bb6;
+  --step-label: #25358f;
 }
 
 * { box-sizing: border-box; }
@@ -291,11 +292,14 @@ h1 {
 .product-gallery__main { min-height: 520px; border-radius: 28px; box-shadow: 0 24px 70px rgba(37,53,143,.1); }
 .product-gallery__main img, .product-gallery__thumb img { padding: 24px; }
 .product-gallery__thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-.product-gallery__thumb { min-height: 105px; border-radius: 14px; }
+.product-gallery__thumb { min-height: 105px; padding: 0; border-radius: 14px; cursor: pointer; }
+.product-gallery__thumb[aria-pressed="true"] { border-color: var(--engineering-blue); box-shadow: 0 0 0 2px var(--engineering-blue); }
 .product-detail-hero__copy h1 { margin: 14px 0 22px; font-size: clamp(2.8rem, 5.7vw, 5.1rem); }
 .product-detail-hero__copy > p:not(.eyebrow) { color: #3e5b76; font-size: 1.1rem; line-height: 1.72; }
 .product-detail-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .secondary-light-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 0 18px; border: 1px solid rgba(37,53,143,.34); border-radius: 999px; color: var(--engineering-blue); font-weight: 750; text-decoration: none; }
+.inquiry-cta.secondary-light-cta { background: #fff; box-shadow: none; color: var(--engineering-blue); }
+.inquiry-cta.secondary-light-cta:hover { background: #dff6ff; }
 .detail-section h2, .related-products h2, .page-section-heading h2, .process-band h2, .manufacturing-evidence h2, .about-story h2, .faq-page-layout h2 { margin: 10px 0 18px; color: var(--engineering-blue); font-size: clamp(2rem, 4vw, 3.7rem); line-height: 1.05; letter-spacing: -.05em; }
 .detail-split { display: grid; grid-template-columns: minmax(260px, .72fr) minmax(0, 1.28fr); gap: clamp(34px, 8vw, 112px); }
 .detail-section--mist, .about-identity { background: linear-gradient(135deg, #f8fdff, #eaf8ff 60%, #fff); }
@@ -320,7 +324,7 @@ h1 {
 .detail-flow, .route-flow { display: grid; padding: 0; list-style: none; }
 .detail-flow { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
 .detail-flow li { min-height: 150px; padding: 20px; border-radius: 18px; background: var(--mist); }
-.detail-flow span, .route-flow li > span { color: var(--clear-blue); font-family: var(--font-geist-mono), monospace; font-size: .76rem; font-weight: 800; }
+.detail-flow span, .route-flow li > span { color: var(--step-label); font-family: var(--font-geist-mono), monospace; font-size: .76rem; font-weight: 800; }
 .detail-flow p { color: #385570; font-weight: 700; line-height: 1.5; }
 .related-products { background: #fff; }
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Seismic support arrangement</title>
+  <desc id="desc">A clean engineering illustration of a channel frame with two diagonal brace members.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M150 102h420M215 102v252M505 102v252M215 280h290" fill="none" stroke="#25358f" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+  <path d="m215 280 124-178m166 178L381 102" fill="none" stroke="#0878d1" stroke-linecap="round" stroke-width="16"/>
+  <path d="M185 354h360" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="14"/>
+  <g fill="#10233f"><circle cx="215" cy="280" r="10"/><circle cx="505" cy="280" r="10"/><circle cx="339" cy="102" r="10"/><circle cx="381" cy="102" r="10"/></g>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">SEISMIC SUPPORT</text>
+</svg>

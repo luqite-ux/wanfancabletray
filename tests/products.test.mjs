@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { scanProhibitedTerms } from "../lib/compliance.ts";
 import { productFamilies } from "../lib/site-data.ts";
@@ -71,6 +72,18 @@ test("fallback products cover every verified product family without commerce fie
   assert.deepEqual(scanProhibitedTerms(JSON.stringify(fallbackProducts)), []);
 });
 
+test("every verified fallback family has a distinct accessible product illustration", async () => {
+  assert.equal(new Set(fallbackProducts.map((product) => product.image)).size, fallbackProducts.length);
+
+  for (const product of fallbackProducts) {
+    assert.match(product.image, /^\/assets\/products\/[a-z0-9-]+\.svg$/);
+    const source = await readFile(new URL(`../public${product.image}`, import.meta.url), "utf8");
+    assert.match(source, /<svg[^>]*role="img"/);
+    assert.match(source, /<title(?:\s|>)/);
+    assert.match(source, /<desc(?:\s|>)/);
+  }
+});
+
 test("product rows resolve requested locale before default and first non-empty locale", () => {
   const requested = mapProductRow(databaseRow, "zh");
   assert.equal(requested.name, "数据库桥架");
@@ -82,6 +95,35 @@ test("product rows resolve requested locale before default and first non-empty l
 
   const firstNonEmpty = mapProductRow({ ...databaseRow, name_i18n: { en: " ", fr: "Chemin de câbles" } }, "de");
   assert.equal(firstNonEmpty.name, "Chemin de câbles");
+});
+
+test("legacy English text and lists precede unrelated foreign i18n fallbacks", () => {
+  const legacyDefault = mapProductRow({
+    ...databaseRow,
+    name_i18n: { fr: "Chemin de câbles" },
+    name_en: "Legacy English name",
+    name: "Generic legacy name",
+    description_i18n: { fr: "Description française" },
+    description_en: "Legacy English description",
+    description: "Generic legacy description",
+    features_i18n: { fr: ["Fonction française"] },
+    features: ["Legacy English feature"],
+  }, "de");
+
+  assert.equal(legacyDefault.name, "Legacy English name");
+  assert.equal(legacyDefault.description, "Legacy English description");
+  assert.deepEqual(legacyDefault.features, ["Legacy English feature"]);
+
+  const requested = mapProductRow({
+    ...databaseRow,
+    name_i18n: { zh: "请求语言名称", fr: "Nom français" },
+    name_en: "Legacy English name",
+    features_i18n: { zh: ["请求语言特点"], fr: ["Fonction française"] },
+    features: ["Legacy English feature"],
+  }, "zh");
+
+  assert.equal(requested.name, "请求语言名称");
+  assert.deepEqual(requested.features, ["请求语言特点"]);
 });
 
 test("new tenant product slugs do not inherit cable-tray-specific fallback facts", () => {

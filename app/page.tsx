@@ -8,7 +8,7 @@ import { InquiryCta } from "@/components/inquiry-cta";
 import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
 import { homepageProducts, materialOptions } from "@/lib/home-content";
-import { cableTrayMaterials, company, faqItems, productFamilies } from "@/lib/site-data";
+import { cableTrayMaterials, company, faqItems, productFamilies, productionFacts } from "@/lib/site-data";
 
 const applications = [
   { icon: Building2, title: "Commercial buildings", text: "Organized cable routing and support across coordinated building services." },
@@ -39,9 +39,9 @@ export default function HomePage() {
         <div className="page-container">
           <SectionHeading eyebrow="Manufacturing at a glance" title="Built for practical project coordination." description="Verified production facts to help your team start a clear technical conversation." />
           <div className="metrics-grid">
-            <AnimatedMetric detail="Approximate working area for cable-management and support production." iconName="factory" label="Facility area" value="≈3,000 m²" />
-            <AnimatedMetric detail="Production equipment supporting different fabrication stages." iconName="machines" label="Production machines" value="≈50" />
-            <AnimatedMetric detail="Typical production window, subject to order confirmation." iconName="schedule" label="Typical window" value="5–15 days" />
+            <AnimatedMetric detail="Approximate working area for cable-management and support production." iconName="factory" label="Facility area" value={productionFacts.facilityArea.display} />
+            <AnimatedMetric detail="Production equipment supporting different fabrication stages." iconName="machines" label="Production machines" value={productionFacts.machineCount.display} />
+            <AnimatedMetric detail={`Typical production window, ${productionFacts.productionWindow.qualifier}.`} iconName="schedule" label="Typical window" value={productionFacts.productionWindow.days} />
             <AnimatedMetric detail="Bring drawings, dimensions, and requirements into the review." iconName="drawing" label="Customization" value="Drawing-based customization" />
           </div>
         </div>

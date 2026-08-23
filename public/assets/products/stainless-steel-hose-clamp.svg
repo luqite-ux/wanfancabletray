@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Stainless-steel hose clamp</title>
+  <desc id="desc">A clean engineering illustration of a circular band clamp with a screw housing.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <circle cx="338" cy="225" r="132" fill="none" stroke="#25358f" stroke-width="24"/>
+  <circle cx="338" cy="225" r="94" fill="#fff" stroke="#00aee8" stroke-width="9"/>
+  <rect x="438" y="111" width="134" height="70" rx="17" fill="#dff6ff" stroke="#0878d1" stroke-width="15"/>
+  <path d="M468 146h144m-78-28v56" fill="none" stroke="#10233f" stroke-linecap="round" stroke-width="10"/>
+  <g stroke="#0878d1" stroke-width="7"><path d="M210 204h31"/><path d="M218 256h31"/><path d="M250 310h31"/></g>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">STAINLESS-STEEL HOSE CLAMP</text>
+</svg>

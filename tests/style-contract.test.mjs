@@ -29,3 +29,11 @@ test("focus rings meet 3:1 contrast on the light and footer surfaces", () => {
   assert.ok(contrastRatio(lightFocus, "#ffffff") >= 3);
   assert.ok(contrastRatio(footerFocus, footerBackground) >= 3);
 });
+
+test("small flow-step labels meet 4.5:1 contrast on mist cards", () => {
+  const stepLabel = colorFromScope(":root", "--step-label");
+  const mist = colorFromScope(":root", "--mist");
+
+  assert.ok(contrastRatio(stepLabel, mist) >= 4.5);
+  assert.match(css, /\.detail-flow span, \.route-flow li > span \{[^}]*color:\s*var\(--step-label\)/s);
+});

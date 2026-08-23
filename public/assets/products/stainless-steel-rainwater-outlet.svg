@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Stainless-steel rainwater outlet</title>
+  <desc id="desc">A clean engineering illustration of a round outlet flange, grate, and cylindrical neck.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <ellipse cx="360" cy="168" rx="176" ry="76" fill="#dff6ff" stroke="#25358f" stroke-width="20"/>
+  <ellipse cx="360" cy="168" rx="105" ry="44" fill="#fff" stroke="#0878d1" stroke-width="14"/>
+  <path d="M255 168v130c0 31 47 56 105 56s105-25 105-56V168" fill="none" stroke="#25358f" stroke-width="20"/>
+  <g stroke="#00aee8" stroke-linecap="round" stroke-width="9"><path d="M300 150h120"/><path d="M305 168h110"/><path d="M316 186h88"/></g>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">RAINWATER OUTLET</text>
+</svg>

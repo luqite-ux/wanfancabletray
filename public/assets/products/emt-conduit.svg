@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">EMT conduit sections</title>
+  <desc id="desc">A clean engineering illustration of two straight metallic conduit sections with visible round ends.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M150 154h404M150 226h404" fill="none" stroke="#25358f" stroke-linecap="round" stroke-width="48"/>
+  <path d="M150 154h404M150 226h404" fill="none" stroke="#dff6ff" stroke-linecap="round" stroke-width="24"/>
+  <ellipse cx="554" cy="154" rx="26" ry="27" fill="#fff" stroke="#0878d1" stroke-width="10"/>
+  <ellipse cx="554" cy="226" rx="26" ry="27" fill="#fff" stroke="#00aee8" stroke-width="10"/>
+  <path d="M190 300h340" fill="none" stroke="#10233f" stroke-linecap="round" stroke-width="8"/>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">EMT CONDUITS</text>
+</svg>

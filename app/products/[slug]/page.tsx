@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Check, ClipboardCheck, Layers3, Ruler, Settings2 } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { ProductCard } from "@/components/product-card";
+import { ProductGallery } from "@/components/product-gallery";
 import { getProductBySlug, getProducts } from "@/lib/products-db";
 import { company } from "@/lib/site-data";
 
@@ -14,6 +14,7 @@ interface ProductDetailPageProps {
 
 export const revalidate = 60;
 export const dynamicParams = true;
+const siteOrigin = `https://${company.domain}`;
 
 export async function generateStaticParams() {
   const products = await getProducts(company.defaultLocale);
@@ -26,7 +27,6 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 
   if (!product) return { title: "Product not found" };
 
-  const siteOrigin = `https://${company.domain}`;
   const url = `${siteOrigin}/products/${product.slug}`;
   const socialImage = new URL(product.image, siteOrigin).toString();
   return {
@@ -61,7 +61,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: product.gallery.map(({ src }) => src),
+    image: product.gallery.map(({ src }) => new URL(src, siteOrigin).toString()),
     category: product.family,
     brand: { "@type": "Brand", name: company.brand },
     manufacturer: { "@type": "Organization", name: company.publicName },
@@ -74,27 +74,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <div className="page-container">
           <Link className="back-link" href="/products"><ArrowLeft aria-hidden="true" size={18} /> Back to products</Link>
           <div className="product-detail-hero__grid">
-            <div className="product-gallery" aria-label={`${product.name} image gallery`}>
-              <div className="product-gallery__main">
-                <Image alt={product.gallery[0]?.alt || product.imageAlt} fill priority sizes="(max-width: 860px) 100vw, 50vw" src={product.gallery[0]?.src || product.image} style={{ objectFit: "contain" }} />
-              </div>
-              {product.gallery.length > 1 ? (
-                <div className="product-gallery__thumbs">
-                  {product.gallery.slice(1).map((image) => (
-                    <div className="product-gallery__thumb" key={image.src}>
-                      <Image alt={image.alt} fill sizes="160px" src={image.src} style={{ objectFit: "contain" }} />
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <ProductGallery images={product.gallery} productName={product.name} />
             <div className="product-detail-hero__copy">
               <p className="eyebrow">{product.family}</p>
               <h1 id="product-title">{product.name}</h1>
               <p>{product.description}</p>
               <div className="product-detail-hero__actions">
                 <InquiryCta label="Request a Product Quote" productSlug={product.slug} />
-                <a className="secondary-light-cta" href={`mailto:${company.email}`}>Email product requirements</a>
+                <InquiryCta className="secondary-light-cta" label="Discuss Product Requirements" productSlug={product.slug} />
               </div>
             </div>
           </div>

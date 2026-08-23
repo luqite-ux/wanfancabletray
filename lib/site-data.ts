@@ -46,6 +46,22 @@ export const company: Company = {
   supportedLocales: ["en"],
 };
 
+export const productionFacts = {
+  facilityArea: {
+    approximateSquareMeters: 3000,
+    display: "≈3,000 m²",
+  },
+  machineCount: {
+    approximate: 50,
+    display: "≈50",
+  },
+  productionWindow: {
+    days: "5–15 days",
+    qualifier: "subject to order confirmation",
+    display: "5–15 days, subject to order confirmation",
+  },
+};
+
 export const primaryNavigation: NavigationItem[] = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/products" },

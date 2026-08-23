@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">JDG conduit and coupling</title>
+  <desc id="desc">A clean engineering illustration of two conduit sections joined by a coupling with set screws.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="M118 220h484" fill="none" stroke="#25358f" stroke-linecap="round" stroke-width="50"/>
+  <path d="M118 220h484" fill="none" stroke="#dff6ff" stroke-linecap="round" stroke-width="24"/>
+  <rect x="288" y="174" width="144" height="92" rx="24" fill="#fff" stroke="#0878d1" stroke-width="16"/>
+  <path d="M322 174v-31m76 31v-31" fill="none" stroke="#00aee8" stroke-linecap="round" stroke-width="12"/>
+  <circle cx="322" cy="137" r="10" fill="#10233f"/><circle cx="398" cy="137" r="10" fill="#10233f"/>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">JDG CONDUITS</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Stainless-steel fastener components</title>
+  <desc id="desc">A clean engineering illustration of a hex-head bolt, matching nut, and washer.</desc>
+  <rect width="720" height="460" rx="30" fill="#edf7ff"/>
+  <path d="m145 145 54-34 54 34v68l-54 34-54-34z" fill="#dff6ff" stroke="#25358f" stroke-width="16"/>
+  <path d="M253 179h242" fill="none" stroke="#0878d1" stroke-linecap="round" stroke-width="38"/>
+  <path d="M322 162v34m42-34v34m42-34v34m42-34v34" stroke="#fff" stroke-width="7"/>
+  <path d="m452 282 54-34 54 34v68l-54 34-54-34z" fill="#fff" stroke="#25358f" stroke-width="16"/>
+  <circle cx="506" cy="316" r="27" fill="#edf7ff" stroke="#00aee8" stroke-width="10"/>
+  <ellipse cx="284" cy="320" rx="82" ry="45" fill="#fff" stroke="#0878d1" stroke-width="14"/><ellipse cx="284" cy="320" rx="36" ry="18" fill="#edf7ff" stroke="#00aee8" stroke-width="8"/>
+  <text x="360" y="418" fill="#10233f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">STAINLESS-STEEL FASTENERS</text>
+</svg>

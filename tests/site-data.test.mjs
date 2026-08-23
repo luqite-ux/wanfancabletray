@@ -34,6 +34,19 @@ test("registered trademark details use the verified centralized records", () => 
   ]);
 });
 
+test("verified production facts have one structured site-data source", async () => {
+  const { productionFacts } = await import("../lib/site-data.ts");
+  assert.deepEqual(productionFacts, {
+    facilityArea: { approximateSquareMeters: 3000, display: "≈3,000 m²" },
+    machineCount: { approximate: 50, display: "≈50" },
+    productionWindow: {
+      days: "5–15 days",
+      qualifier: "subject to order confirmation",
+      display: "5–15 days, subject to order confirmation",
+    },
+  });
+});
+
 test("all visible shared chrome copy contains no prohibited promises", () => {
   assert.deepEqual(
     scanProhibitedTerms(JSON.stringify({

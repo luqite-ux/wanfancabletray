@@ -1,5 +1,5 @@
 import type { LocalizedList, LocalizedText, SiteLocale } from "@/lib/localization";
-import { resolveLocalizedList, resolveLocalizedText } from "@/lib/localization";
+import { resolveLocalizedText } from "@/lib/localization";
 import { cableTrayMaterials, company, productFamilies } from "@/lib/site-data";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
@@ -137,8 +137,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "seismic-supports": {
     categorySlug: "structural-supports",
-    image: "/assets/products/utility-tunnel-support.svg",
-    imageAlt: "Engineering illustration representing a coordinated structural support profile",
+    image: "/assets/products/seismic-support.svg",
+    imageAlt: "Engineering illustration of a braced seismic support arrangement",
     materials: ["Material specification confirmed against project drawings"],
     surfaces: ["Surface process confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -155,8 +155,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "aluminum-cable-trunking": {
     categorySlug: "cable-management",
-    image: "/assets/products/cable-tray-system.svg",
-    imageAlt: "Engineering illustration representing a cable-routing profile",
+    image: "/assets/products/aluminum-cable-trunking.svg",
+    imageAlt: "Engineering illustration of an aluminum cable trunking profile",
     materials: ["Aluminum alloy"],
     surfaces: ["Finish confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -164,8 +164,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-rainwater-outlets": {
     categorySlug: "stainless-components",
-    image: "/assets/factory/workshop-08.jpg",
-    imageAlt: "Wanfan workshop view supporting stainless-steel component production",
+    image: "/assets/products/stainless-steel-rainwater-outlet.svg",
+    imageAlt: "Engineering illustration of a stainless-steel rainwater outlet",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -173,8 +173,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "emt-conduits": {
     categorySlug: "conduit-systems",
-    image: "/assets/factory/workshop-10.jpg",
-    imageAlt: "Wanfan workshop view supporting conduit production",
+    image: "/assets/products/emt-conduit.svg",
+    imageAlt: "Engineering illustration of straight EMT conduit sections",
     materials: ["Metal specification confirmed with the order"],
     surfaces: ["Surface process confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -182,8 +182,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "jdg-conduits": {
     categorySlug: "conduit-systems",
-    image: "/assets/factory/workshop-11.jpg",
-    imageAlt: "Wanfan workshop view supporting conduit production requirements",
+    image: "/assets/products/jdg-conduit.svg",
+    imageAlt: "Engineering illustration of a JDG conduit and coupling",
     materials: ["Metal specification confirmed with the order"],
     surfaces: ["Surface process confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -191,8 +191,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-hose-clamps": {
     categorySlug: "stainless-components",
-    image: "/assets/factory/workshop-12.jpg",
-    imageAlt: "Wanfan workshop view supporting stainless-steel clamp production",
+    image: "/assets/products/stainless-steel-hose-clamp.svg",
+    imageAlt: "Engineering illustration of a stainless-steel hose clamp",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -200,8 +200,8 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-fasteners": {
     categorySlug: "stainless-components",
-    image: "/assets/factory/workshop-13.jpg",
-    imageAlt: "Wanfan workshop view supporting stainless-steel fastener production",
+    image: "/assets/products/stainless-steel-fasteners.svg",
+    imageAlt: "Engineering illustration of stainless-steel fastener components",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],
     specifications: confirmedConfiguration,
@@ -244,17 +244,33 @@ export const fallbackProducts: ProductView[] = productFamilies.map((family) => {
 
 const fallbackBySlug = new Map(fallbackProducts.map((product) => [product.slug, product]));
 
-function firstLegacyText(...values: Array<string | null | undefined>) {
-  return values.find((value) => value?.trim())?.trim() || "";
-}
-
-function localizedText(value: LocalizedText | null | undefined, locale: SiteLocale, legacy = "") {
-  return resolveLocalizedText(value, locale, company.defaultLocale) || legacy.trim();
+function localizedText(
+  value: LocalizedText | null | undefined,
+  locale: SiteLocale,
+  legacyEnglish = "",
+  legacyFallback = "",
+) {
+  const requested = value?.[locale]?.trim();
+  const defaultLocalized = value?.[company.defaultLocale]?.trim();
+  const firstLocalized = value ? Object.values(value).find((entry) => entry?.trim())?.trim() : "";
+  return requested
+    || defaultLocalized
+    || legacyEnglish.trim()
+    || firstLocalized
+    || legacyFallback.trim();
 }
 
 function localizedList(value: unknown, locale: SiteLocale, legacy: string[] = []) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return legacy.map((item) => item.trim()).filter(Boolean);
-  return resolveLocalizedList(value as LocalizedList, locale, company.defaultLocale);
+  const normalizedLegacy = legacy.map((item) => item.trim()).filter(Boolean);
+  if (!value || typeof value !== "object" || Array.isArray(value)) return normalizedLegacy;
+  const localized = value as LocalizedList;
+  const normalize = (entries: string[] | undefined) => entries?.map((item) => item.trim()).filter(Boolean) || [];
+  return [
+    normalize(localized[locale]),
+    normalize(localized[company.defaultLocale]),
+    normalizedLegacy,
+    ...Object.values(localized).map(normalize),
+  ].find((entries) => entries.length > 0) || [];
 }
 
 function stringArray(value: unknown) {
@@ -291,7 +307,7 @@ function normalizedSpecifications(value: unknown, fallback: ProductSpecification
 function localizedImageAlt(extra: Record<string, unknown>, locale: SiteLocale, fallback: string) {
   const value = extra.image_alt_i18n;
   if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
-  return localizedText(value as LocalizedText, locale) || fallback;
+  return localizedText(value as LocalizedText, locale, fallback) || fallback;
 }
 
 function productGallery(row: ProductRow, image: string, imageAlt: string) {
@@ -306,16 +322,18 @@ function productGallery(row: ProductRow, image: string, imageAlt: string) {
 export function mapProductRow(row: ProductRow, locale: SiteLocale = company.defaultLocale): ProductView {
   const fallback = fallbackBySlug.get(row.slug);
   const extra = row.extra_data || {};
-  const name = localizedText(row.name_i18n, locale, firstLegacyText(row.name_en, row.name)) || fallback?.name || "Project Component";
+  const name = localizedText(row.name_i18n, locale, row.name_en || "", row.name || "") || fallback?.name || "Project Component";
   const description = localizedText(
     row.description_i18n,
     locale,
-    firstLegacyText(row.description_en, row.description),
+    row.description_en || "",
+    row.description || "",
   ) || fallback?.description || "A project component configured against confirmed requirements.";
   const overview = localizedText(
     row.overview_i18n,
     locale,
-    firstLegacyText(row.overview_en, row.overview),
+    row.overview_en || "",
+    row.overview || "",
   ) || description || fallback?.overview || "Configuration is reviewed against confirmed project requirements.";
   const categoryValue = row.category?.trim() || "";
   const categorySlug = row.category_slug?.trim()

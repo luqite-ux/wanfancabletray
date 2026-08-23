@@ -56,9 +56,9 @@ test("homepage contains all nine substantive sections and verified manufacturing
     assert.match(homePage, new RegExp(`id=["']${sectionId}["']`));
   }
 
-  assert.match(homePage, /≈3,000 m²/);
-  assert.match(homePage, /≈50/);
-  assert.match(homePage, /5–15 days/);
+  assert.match(homePage, /productionFacts\.facilityArea\.display/);
+  assert.match(homePage, /productionFacts\.machineCount\.display/);
+  assert.match(homePage, /productionFacts\.productionWindow\.days/);
   assert.match(homePage, /Drawing-based customization/);
 });
 
