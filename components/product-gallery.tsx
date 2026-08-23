@@ -16,7 +16,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   if (!activeImage) return null;
 
   return (
-    <div className="product-gallery" aria-label={`${productName} image gallery`}>
+    <div className="product-gallery" aria-label={`${productName} image gallery`} role="group">
       <div className="product-gallery__main" aria-live="polite">
         <Image alt={activeImage.alt} fill priority sizes="(max-width: 860px) 100vw, 50vw" src={activeImage.src} style={{ objectFit: "contain" }} />
       </div>

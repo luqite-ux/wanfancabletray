@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+
+test("hero carousel exposes a named carousel region", async () => {
+  const { HeroCarousel } = await import("../components/hero-carousel");
+  const markup = renderToStaticMarkup(createElement(HeroCarousel));
+  const carouselTag = markup.match(/<div[^>]*aria-roledescription="carousel"[^>]*>/)?.[0] ?? "";
+
+  assert.match(carouselTag, /role="region"/);
+  assert.match(carouselTag, /aria-label="Featured Wanfan capabilities"/);
+});
 
 test("material mapping provides a unique icon, explicit mark, and accessible label for every option", async () => {
   const { materialOptions } = await import("../lib/home-content");

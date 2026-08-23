@@ -241,7 +241,7 @@ h1 {
 .flow-section { background: #fff; }
 .manufacturing-flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; padding: 0; margin: 0; list-style: none; }
 .manufacturing-flow li { position: relative; min-height: 242px; padding: 24px 18px; border-radius: 20px; background: var(--mist); }
-.flow-step__number { display: block; color: var(--electric-cyan); font-family: var(--font-geist-mono), monospace; font-size: .78rem; font-weight: 800; letter-spacing: .1em; }
+.flow-step__number { display: block; color: var(--step-label); font-family: var(--font-geist-mono), monospace; font-size: .78rem; font-weight: 800; letter-spacing: .1em; }
 .flow-step__icon { width: 31px; height: 31px; margin-top: 24px; }
 .manufacturing-flow h3 { font-size: 1.04rem; }
 .manufacturing-flow p { margin: 0; font-size: .92rem; }

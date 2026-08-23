@@ -36,4 +36,5 @@ test("small flow-step labels meet 4.5:1 contrast on mist cards", () => {
 
   assert.ok(contrastRatio(stepLabel, mist) >= 4.5);
   assert.match(css, /\.detail-flow span, \.route-flow li > span \{[^}]*color:\s*var\(--step-label\)/s);
+  assert.match(css, /\.flow-step__number \{[^}]*color:\s*var\(--step-label\)/s);
 });

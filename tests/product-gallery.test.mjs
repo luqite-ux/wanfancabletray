@@ -15,6 +15,9 @@ test("product gallery exposes each image as a keyboard-operable selection button
     productName: "Test Product",
   }));
 
+  const rootGalleryTag = html.match(/<div[^>]*class="product-gallery"[^>]*>/)?.[0] ?? "";
+  assert.match(rootGalleryTag, /role="group"/);
+  assert.match(rootGalleryTag, /aria-label="Test Product image gallery"/);
   assert.match(html, /role="group"/);
   assert.equal((html.match(/type="button"/g) ?? []).length, 2);
   assert.equal((html.match(/aria-pressed="true"/g) ?? []).length, 1);

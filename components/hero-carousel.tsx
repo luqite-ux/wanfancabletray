@@ -109,10 +109,11 @@ export function HeroCarousel() {
       aria-label="Featured Wanfan capabilities"
       aria-roledescription="carousel"
       className="hero-carousel"
+      role="region"
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setIsInteracting(false);
       }}
-      onFocusCapture={() => setIsInteracting(true)}
+      onFocusCapture={() => window.requestAnimationFrame(() => setIsInteracting(true))}
       onKeyDown={(event) => {
         if (event.key === "ArrowLeft") showPrevious();
         if (event.key === "ArrowRight") showNext();
