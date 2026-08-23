@@ -1,0 +1,101 @@
+{
+  "captured_at": "2026-08-23",
+  "zone": {
+    "id": "2953962b4e4fd5824652630a77ea827c",
+    "name": "wanfancabletray.com",
+    "status": "active",
+    "type": "full",
+    "account_id": "5a4bc4b775fdceb953c8b0d762d27281",
+    "name_servers": [
+      "eleanor.ns.cloudflare.com",
+      "sterling.ns.cloudflare.com"
+    ],
+    "original_name_servers": [
+      "ns11.xincache.com",
+      "ns12.xincache.com"
+    ]
+  },
+  "records": [
+    {
+      "id": "451ae9ab65f237af0b2f5f5486e5aa93",
+      "type": "CNAME",
+      "name": "autoconfig.wanfancabletray.com",
+      "content": "autoconfig.forwardemail.net",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "977a6fe158f72e96eef477bb6ef8d4d2",
+      "type": "CNAME",
+      "name": "autodiscover.wanfancabletray.com",
+      "content": "autodiscover.forwardemail.net",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "b958d0a8205f3d8d907063ddd5f193ba",
+      "type": "CNAME",
+      "name": "fe-bounces.wanfancabletray.com",
+      "content": "forwardemail.net",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "564662027565322df6361cef36466089",
+      "type": "MX",
+      "name": "wanfancabletray.com",
+      "content": "mx1.forwardemail.net",
+      "priority": 0,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "e5a7a0de4b3b60f46d5e1f7918dada4c",
+      "type": "MX",
+      "name": "wanfancabletray.com",
+      "content": "mx2.forwardemail.net",
+      "priority": 0,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "76f42f869d8c90322722f7a2126b945f",
+      "type": "TXT",
+      "name": "_dmarc.wanfancabletray.com",
+      "content": "\"v=DMARC1; p=reject; pct=100; rua=mailto:dmarc-6a88f718d85c85530689b10e@forwardemail.net;\"",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "3a071d0ab97301aaaf74970fa8b7e798",
+      "type": "TXT",
+      "name": "fe-6d4c629b8e._domainkey.wanfancabletray.com",
+      "content": "\"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeCBXbZK6ddjlx/qm6Q3ZFpFCdkHxvIGLs3hU3sZ0/bskgjYnlZMmnOkJB1IETvHCHphoiXNFftfI+4Z2SuJM7WQrVBLs3AM2Bo/z30leZC/0P1xQpAzK3U2dUju17xotmkUAqqkz3eK3Ws/MhgoK8g8fUy99ry6WO0/TkVyOWbQIDAQAB;\"",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "9a557ec29586a9c9aa54f8331909bb2c",
+      "type": "TXT",
+      "name": "wanfancabletray.com",
+      "content": "\"forward-email-site-verification=ToylgiFdi7\"",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    },
+    {
+      "id": "d38d18ff31f3bd1c02bebb8352e7ed85",
+      "type": "TXT",
+      "name": "wanfancabletray.com",
+      "content": "\"v=spf1 include:spf.forwardemail.net ~all\"",
+      "priority": null,
+      "proxied": false,
+      "ttl": 3600
+    }
+  ]
+}
