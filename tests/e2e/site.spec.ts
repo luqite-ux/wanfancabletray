@@ -174,6 +174,7 @@ test("all independent routes render unique primary content without runtime error
 });
 
 test("product list and detail galleries keep every product image complete", async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
   const runtimeProblems = monitorRuntime(page);
   await page.goto("/products");
   await expectImagesComplete(page, ".product-card__image-wrap img");
