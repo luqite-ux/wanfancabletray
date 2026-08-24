@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -10,6 +11,22 @@ test("hero carousel exposes a named carousel region", async () => {
 
   assert.match(carouselTag, /role="region"/);
   assert.match(carouselTag, /aria-label="Featured Wanfan capabilities"/);
+});
+
+test("hero uses three generated industrial banners without Chinese copy", async () => {
+  const source = await readFile(new URL("../components/hero-carousel.tsx", import.meta.url), "utf8");
+  assert.match(source, /hero-product-systems-v2\.png/);
+  assert.match(source, /hero-production-line-v2\.png/);
+  assert.match(source, /hero-quality-control-v2\.png/);
+  assert.doesNotMatch(source, /万帆/);
+});
+
+test("homepage visual system includes textured cards and reduced-motion-safe view animation", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /--engineering-grid:/);
+  assert.match(css, /animation-timeline:\s*view\(\)/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /\.site-logo img \{[^}]*width:\s*56px/);
 });
 
 test("material mapping provides a unique icon, explicit mark, and accessible label for every option", async () => {
