@@ -2,9 +2,9 @@ import { Layers3, Paintbrush, PanelsTopLeft, ScanText, ShieldCheck, type LucideI
 import type { ProductCardView } from "@/components/product-card";
 
 export const homepageProducts: ProductCardView[] = [
-  { slug: "cable-tray-systems", name: "Cable Tray Systems", family: "Cable management", description: "Adaptable tray systems for coordinated routing across building and industrial projects.", image: "/assets/products/cable-tray-system.svg", imageAlt: "Engineering illustration of a cable tray system profile" },
-  { slug: "utility-tunnel-supports", name: "Utility-Tunnel Supports", family: "Structural support", description: "Support components for utility-tunnel and infrastructure corridor requirements.", image: "/assets/products/utility-tunnel-support.svg", imageAlt: "Engineering illustration of a utility-tunnel support profile" },
-  { slug: "solar-mounting-structures", name: "Solar Mounting Structures", family: "Structural support", description: "Structural components for solar projects with order-specific material and process options.", image: "/assets/products/solar-mounting-structure.svg", imageAlt: "Engineering illustration of a solar mounting structure profile" },
+  { slug: "cable-tray-systems", name: "Cable Tray Systems", family: "Cable management", description: "Adaptable tray systems for coordinated routing across building and industrial projects.", image: "/assets/products/photo/cable-tray-systems.png", imageAlt: "Galvanized steel ladder cable tray product" },
+  { slug: "utility-tunnel-supports", name: "Utility-Tunnel Supports", family: "Structural support", description: "Support components for utility-tunnel and infrastructure corridor requirements.", image: "/assets/products/photo/utility-tunnel-supports.png", imageAlt: "Galvanized utility-tunnel support frame assembly" },
+  { slug: "solar-mounting-structures", name: "Solar Mounting Structures", family: "Structural support", description: "Structural components for solar projects with order-specific material and process options.", image: "/assets/products/photo/solar-mounting-structures.png", imageAlt: "Galvanized solar mounting structure assembly" },
 ];
 
 export interface MaterialOption {

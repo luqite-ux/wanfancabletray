@@ -72,15 +72,13 @@ test("fallback products cover every verified product family without commerce fie
   assert.deepEqual(scanProhibitedTerms(JSON.stringify(fallbackProducts)), []);
 });
 
-test("every verified fallback family has a distinct accessible product illustration", async () => {
+test("every verified fallback family has a distinct photorealistic product image", async () => {
   assert.equal(new Set(fallbackProducts.map((product) => product.image)).size, fallbackProducts.length);
 
   for (const product of fallbackProducts) {
-    assert.match(product.image, /^\/assets\/products\/[a-z0-9-]+\.svg$/);
-    const source = await readFile(new URL(`../public${product.image}`, import.meta.url), "utf8");
-    assert.match(source, /<svg[^>]*role="img"/);
-    assert.match(source, /<title(?:\s|>)/);
-    assert.match(source, /<desc(?:\s|>)/);
+    assert.match(product.image, /^\/assets\/products\/photo\/[a-z0-9-]+\.png$/);
+    const image = await readFile(new URL(`../public${product.image}`, import.meta.url));
+    assert.equal(image.subarray(1, 4).toString("ascii"), "PNG");
   }
 });
 
