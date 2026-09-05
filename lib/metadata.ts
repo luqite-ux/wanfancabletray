@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import type { SiteLocale } from "@/lib/localization";
+import { localizePath, normalizeSupportedLocales, resolveLocaleHeader } from "@/lib/locale-routing";
 import type { ProductView } from "@/lib/products-db";
 import { company, publicCopy } from "@/lib/site-data";
 
@@ -13,6 +15,8 @@ interface PageMetadataInput {
   imageAlt?: string;
   type?: "website" | "article";
   publishedTime?: string;
+  locale?: SiteLocale;
+  supportedLocales?: SiteLocale[];
 }
 
 export function absoluteUrl(path = "/") {
@@ -27,13 +31,22 @@ export function buildPageMetadata({
   imageAlt = `${company.brand} cable-management and structural-support manufacturing`,
   type = "website",
   publishedTime,
+  locale = company.defaultLocale,
+  supportedLocales = company.supportedLocales,
 }: PageMetadataInput): Metadata {
-  const canonical = absoluteUrl(path);
+  const normalizedLocales = normalizeSupportedLocales(supportedLocales, company.defaultLocale);
+  const resolvedLocale = resolveLocaleHeader(locale, normalizedLocales, company.defaultLocale);
+  const canonical = absoluteUrl(localizePath(path, resolvedLocale, company.defaultLocale));
   const socialImage = image ? absoluteUrl(image) : defaultOpenGraphImage;
+  const languages = Object.fromEntries(normalizedLocales.map((supportedLocale) => [
+    supportedLocale,
+    absoluteUrl(localizePath(path, supportedLocale, company.defaultLocale)),
+  ]));
+  languages["x-default"] = absoluteUrl(path);
   const openGraphBase = {
     description,
     images: [{ alt: imageAlt, url: socialImage }],
-    locale: "en_US",
+    locale: resolvedLocale === "en" ? "en_US" : resolvedLocale === "zh" ? "zh_CN" : resolvedLocale.replace("-", "_"),
     siteName: company.publicName,
     title,
     url: canonical,
@@ -44,10 +57,7 @@ export function buildPageMetadata({
     description,
     alternates: {
       canonical,
-      languages: {
-        en: canonical,
-        "x-default": canonical,
-      },
+      languages,
     },
     openGraph: type === "article"
       ? { ...openGraphBase, type: "article", publishedTime }
@@ -74,11 +84,11 @@ export function buildOrganizationJsonLd() {
   } as const;
 }
 
-export function buildProductJsonLd(product: ProductView) {
+export function buildProductJsonLd(product: ProductView, locale: SiteLocale = company.defaultLocale) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    "@id": `${absoluteUrl(`/products/${product.slug}`)}#product`,
+    "@id": `${absoluteUrl(localizePath(`/products/${product.slug}`, locale, company.defaultLocale))}#product`,
     name: product.name,
     description: product.description,
     image: product.gallery.map(({ src }) => absoluteUrl(src)),

@@ -57,6 +57,7 @@ export type CaptchaChallenge = {
   svg: string
   token: string
   expiresAt: number
+  accessiblePrompt?: string
   testAnswer?: string
 }
 
@@ -246,14 +247,19 @@ function createChallenge(input: {
   siteScope: string
   scope: string
   now: number
+  accessible?: boolean
 }) {
   assertSecret(input.secret)
   const scope = assertFormScope(input.scope)
   const context = contextHashes(input.tenantId, input.siteScope, scope)
-  const answer = Array.from(
-    { length: CAPTCHA_LENGTH },
-    () => CAPTCHA_ALPHABET[randomInt(CAPTCHA_ALPHABET.length)],
-  ).join('')
+  const left = input.accessible ? randomInt(2, 10) : 0
+  const right = input.accessible ? randomInt(2, 10) : 0
+  const answer = input.accessible
+    ? String(left + right)
+    : Array.from(
+        { length: CAPTCHA_LENGTH },
+        () => CAPTCHA_ALPHABET[randomInt(CAPTCHA_ALPHABET.length)],
+      ).join('')
   const nonce = randomBytes(16).toString('base64url')
   const challengeId = randomBytes(16).toString('base64url')
   const expiresAt = input.now + CAPTCHA_TTL_MS
@@ -276,9 +282,10 @@ function createChallenge(input: {
   const token = `${encodedPayload}.${signature}`
   return {
     challenge: {
-      svg: renderSvg(answer, nonce),
+      svg: input.accessible ? '' : renderSvg(answer, nonce),
       token,
       expiresAt,
+      ...(input.accessible ? { accessiblePrompt: `What is ${left} plus ${right}?` } : {}),
       ...(process.env.NODE_ENV === 'test' ? { testAnswer: answer } : {}),
     } satisfies CaptchaChallenge,
     issueRecord: {
@@ -297,6 +304,7 @@ export async function issueCaptchaChallenge(input: {
   scope: string
   store: CaptchaChallengeStore
   now?: number
+  accessible?: boolean
 }): Promise<CaptchaChallenge> {
   if (!input.store?.issue) throw new Error('CAPTCHA challenge store is required')
   const generated = createChallenge({ ...input, now: input.now ?? Date.now() })

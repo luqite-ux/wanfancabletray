@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const homePage = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const globalCss = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -108,26 +109,22 @@ test("carousel exposes its actual paused state for interaction and manual pause"
   assert.match(carousel, /aria-live="polite"/);
 });
 
-test("product cards use verified-family engineering visuals instead of workshop views", async () => {
+test("product cards use photorealistic product views instead of line art or workshop views", async () => {
   const { homepageProducts } = await import("../lib/home-content");
-  const cableTrayVisual = await projectSource("public/assets/products/cable-tray-system.svg");
-  const tunnelSupportVisual = await projectSource("public/assets/products/utility-tunnel-support.svg");
-  const solarVisual = await projectSource("public/assets/products/solar-mounting-structure.svg");
 
   assert.equal(homepageProducts.length, 3);
   assert.deepEqual(homepageProducts.map((product) => product.image), [
-    "/assets/products/cable-tray-system.svg",
-    "/assets/products/utility-tunnel-support.svg",
-    "/assets/products/solar-mounting-structure.svg",
+    "/assets/products/photo/cable-tray-systems.png",
+    "/assets/products/photo/utility-tunnel-supports.png",
+    "/assets/products/photo/solar-mounting-structures.png",
   ]);
-  assert.equal(homepageProducts.every((product) => !product.image.includes("workshop-")), true);
-  for (const source of [cableTrayVisual, tunnelSupportVisual, solarVisual]) {
-    assert.match(source, /<svg/);
-    assert.match(source, /<title(?:\s|>)/);
-  }
+  assert.equal(homepageProducts.every((product) => product.image.endsWith(".png") && !product.image.includes("workshop-")), true);
 });
 
-test("homepage links and conditional news headings have matching targets and labels", () => {
-  assert.match(homePage, /<Link className="inquiry-cta" href="\/products">Explore All Product Families<\/Link>/);
+test("homepage links and conditional news headings have matching targets and labels", async () => {
+  const { default: HomePage } = await import("../app/page.tsx");
+  const renderedHomePage = renderToStaticMarkup(await HomePage());
+
+  assert.match(renderedHomePage, /<a class="inquiry-cta" href="\/products">Explore All Product Families<\/a>/);
   assert.match(homePage, /<SectionHeading eyebrow="News" id="news-heading" title="Updates from Wanfan"/);
 });

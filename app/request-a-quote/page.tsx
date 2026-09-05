@@ -3,16 +3,22 @@ import { ClipboardList, FileUp, Ruler, Send } from "lucide-react";
 import { InquiryForm } from "@/components/inquiry-form";
 import { buildPageMetadata } from "@/lib/metadata";
 import { getProductBySlug, productCategories } from "@/lib/products-db";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company } from "@/lib/site-data";
 
 const pageTitle = `Request a Quote | ${company.brand}`;
 const pageDescription = `Send ${company.publicName} the product, quantity, drawing and application context for an order-specific review.`;
 
-export const metadata: Metadata = buildPageMetadata({
-  title: pageTitle,
-  description: pageDescription,
-  path: "/request-a-quote",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return buildPageMetadata({
+    title: pageTitle,
+    description: pageDescription,
+    path: "/request-a-quote",
+    locale,
+    supportedLocales,
+  });
+}
 
 interface RequestQuotePageProps {
   searchParams?: Promise<{
@@ -27,9 +33,10 @@ function firstValue(value: string | string[] | undefined) {
 
 export default async function RequestQuotePage({ searchParams = Promise.resolve({}) }: RequestQuotePageProps) {
   const query = await searchParams;
+  const { locale } = await getRequestLocaleContext();
   const productSlug = firstValue(query.product)?.trim() || "";
   const requestedCategory = firstValue(query.category)?.trim() || "";
-  const product = productSlug ? await getProductBySlug(productSlug, company.defaultLocale) : null;
+  const product = productSlug ? await getProductBySlug(productSlug, locale) : null;
   const matchedCategory = productCategories.find(
     ({ slug, label }) => slug === requestedCategory || label.toLowerCase() === requestedCategory.toLowerCase(),
   );

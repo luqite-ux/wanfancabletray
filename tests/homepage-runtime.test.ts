@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -24,6 +25,22 @@ test("factory video renders the first item from the supplied workshop playlist",
 
   assert.match(markup, /<video[^>]*>/);
   assert.match(markup, /src="\/assets\/factory\/workshop-video-1\.mp4"/);
+});
+
+test("hero uses three generated industrial banners without Chinese copy", async () => {
+  const source = await readFile(new URL("../components/hero-carousel.tsx", import.meta.url), "utf8");
+  assert.match(source, /hero-product-systems-v2\.png/);
+  assert.match(source, /hero-production-line-v2\.png/);
+  assert.match(source, /hero-quality-control-v2\.png/);
+  assert.doesNotMatch(source, /万帆/);
+});
+
+test("homepage visual system includes textured cards and reduced-motion-safe view animation", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /--engineering-grid:/);
+  assert.match(css, /animation-timeline:\s*view\(\)/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /\.site-logo img \{[^}]*width:\s*56px/);
 });
 
 test("material mapping provides a unique icon, explicit mark, and accessible label for every option", async () => {

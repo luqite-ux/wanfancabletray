@@ -9,16 +9,16 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 export const DEFAULT_MEDIA_MANIFEST = path.join(os.tmpdir(), "wanfancabletray-r2-media.json");
 
 const productAssets = [
-  ["cable-tray-systems", "cable-tray-system.svg"],
-  ["solar-mounting-structures", "solar-mounting-structure.svg"],
-  ["seismic-supports", "seismic-support.svg"],
-  ["utility-tunnel-supports", "utility-tunnel-support.svg"],
-  ["aluminum-cable-trunking", "aluminum-cable-trunking.svg"],
-  ["stainless-steel-rainwater-outlets", "stainless-steel-rainwater-outlet.svg"],
-  ["emt-conduits", "emt-conduit.svg"],
-  ["jdg-conduits", "jdg-conduit.svg"],
-  ["stainless-steel-hose-clamps", "stainless-steel-hose-clamp.svg"],
-  ["stainless-steel-fasteners", "stainless-steel-fasteners.svg"],
+  ["cable-tray-systems", "photo/cable-tray-systems.png"],
+  ["solar-mounting-structures", "photo/solar-mounting-structures.png"],
+  ["seismic-supports", "photo/seismic-supports.png"],
+  ["utility-tunnel-supports", "photo/utility-tunnel-supports.png"],
+  ["aluminum-cable-trunking", "photo/aluminum-cable-trunking.png"],
+  ["stainless-steel-rainwater-outlets", "photo/stainless-steel-rainwater-outlets.png"],
+  ["emt-conduits", "photo/emt-conduits.png"],
+  ["jdg-conduits", "photo/jdg-conduits.png"],
+  ["stainless-steel-hose-clamps", "photo/stainless-steel-hose-clamps.png"],
+  ["stainless-steel-fasteners", "photo/stainless-steel-fasteners.png"],
 ];
 
 const staticAssets = [

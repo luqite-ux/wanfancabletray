@@ -2,16 +2,22 @@ import type { Metadata } from "next";
 import { Mail, MapPin, MessageSquareText, Phone } from "lucide-react";
 import { InquiryForm } from "@/components/inquiry-form";
 import { buildPageMetadata } from "@/lib/metadata";
+import { getRequestLocaleContext } from "@/lib/request-locale";
 import { company, publicCopy } from "@/lib/site-data";
 
 const pageTitle = `Contact | ${company.brand}`;
 const pageDescription = `Contact ${company.publicName} about cable-management and structural-support project requirements.`;
 
-export const metadata: Metadata = buildPageMetadata({
-  title: pageTitle,
-  description: pageDescription,
-  path: "/contact",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, supportedLocales } = await getRequestLocaleContext();
+  return buildPageMetadata({
+    title: pageTitle,
+    description: pageDescription,
+    path: "/contact",
+    locale,
+    supportedLocales,
+  });
+}
 
 export default function ContactPage() {
   return (

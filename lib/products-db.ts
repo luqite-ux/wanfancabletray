@@ -116,7 +116,7 @@ const genericAdvantages = ["Confirmed project inputs remain visible through prod
 const familyConfiguration: Record<string, FallbackConfiguration> = {
   "cable-tray-systems": {
     categorySlug: "cable-management",
-    image: "/assets/products/cable-tray-system.svg",
+    image: "/assets/products/photo/cable-tray-systems.png",
     imageAlt: "Engineering illustration of a cable tray system profile",
     materials: cableTrayMaterials.en,
     surfaces: ["Galvanized", "Powder-coated", "Zinc-aluminum-magnesium coated", "Specified mill finish"],
@@ -128,7 +128,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "solar-mounting-structures": {
     categorySlug: "structural-supports",
-    image: "/assets/products/solar-mounting-structure.svg",
+    image: "/assets/products/photo/solar-mounting-structures.png",
     imageAlt: "Engineering illustration of a solar mounting structure profile",
     materials: ["Material specification confirmed against project drawings"],
     surfaces: ["Surface process confirmed with the order"],
@@ -137,7 +137,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "seismic-supports": {
     categorySlug: "structural-supports",
-    image: "/assets/products/seismic-support.svg",
+    image: "/assets/products/photo/seismic-supports.png",
     imageAlt: "Engineering illustration of a braced seismic support arrangement",
     materials: ["Material specification confirmed against project drawings"],
     surfaces: ["Surface process confirmed with the order"],
@@ -146,7 +146,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "utility-tunnel-supports": {
     categorySlug: "structural-supports",
-    image: "/assets/products/utility-tunnel-support.svg",
+    image: "/assets/products/photo/utility-tunnel-supports.png",
     imageAlt: "Engineering illustration of a utility-tunnel support profile",
     materials: ["Material specification confirmed against project drawings"],
     surfaces: ["Surface process confirmed with the order"],
@@ -155,7 +155,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "aluminum-cable-trunking": {
     categorySlug: "cable-management",
-    image: "/assets/products/aluminum-cable-trunking.svg",
+    image: "/assets/products/photo/aluminum-cable-trunking.png",
     imageAlt: "Engineering illustration of an aluminum cable trunking profile",
     materials: ["Aluminum alloy"],
     surfaces: ["Finish confirmed with the order"],
@@ -164,7 +164,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-rainwater-outlets": {
     categorySlug: "stainless-components",
-    image: "/assets/products/stainless-steel-rainwater-outlet.svg",
+    image: "/assets/products/photo/stainless-steel-rainwater-outlets.png",
     imageAlt: "Engineering illustration of a stainless-steel rainwater outlet",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],
@@ -173,7 +173,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "emt-conduits": {
     categorySlug: "conduit-systems",
-    image: "/assets/products/emt-conduit.svg",
+    image: "/assets/products/photo/emt-conduits.png",
     imageAlt: "Engineering illustration of straight EMT conduit sections",
     materials: ["Metal specification confirmed with the order"],
     surfaces: ["Surface process confirmed with the order"],
@@ -182,7 +182,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "jdg-conduits": {
     categorySlug: "conduit-systems",
-    image: "/assets/products/jdg-conduit.svg",
+    image: "/assets/products/photo/jdg-conduits.png",
     imageAlt: "Engineering illustration of a JDG conduit and coupling",
     materials: ["Metal specification confirmed with the order"],
     surfaces: ["Surface process confirmed with the order"],
@@ -191,7 +191,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-hose-clamps": {
     categorySlug: "stainless-components",
-    image: "/assets/products/stainless-steel-hose-clamp.svg",
+    image: "/assets/products/photo/stainless-steel-hose-clamps.png",
     imageAlt: "Engineering illustration of a stainless-steel hose clamp",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],
@@ -200,7 +200,7 @@ const familyConfiguration: Record<string, FallbackConfiguration> = {
   },
   "stainless-steel-fasteners": {
     categorySlug: "stainless-components",
-    image: "/assets/products/stainless-steel-fasteners.svg",
+    image: "/assets/products/photo/stainless-steel-fasteners.png",
     imageAlt: "Engineering illustration of stainless-steel fastener components",
     materials: ["Stainless steel"],
     surfaces: ["Finish confirmed with the order"],

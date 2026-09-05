@@ -28,6 +28,22 @@ test("page metadata keeps canonical and Open Graph URLs on the verified public d
   assert.match(metadata.openGraph.images[0].url, /^https:\/\/wanfancabletray\.com\//);
 });
 
+test("localized metadata gives each enabled language its own canonical and reciprocal alternates", () => {
+  const metadata = buildPageMetadata({
+    title: "产品 | Wanfan",
+    description: "本地化产品页面。",
+    path: "/products",
+    locale: "zh",
+    supportedLocales: ["en", "zh"],
+  });
+
+  assert.equal(metadata.alternates.canonical, "https://wanfancabletray.com/zh/products");
+  assert.equal(metadata.alternates.languages.en, "https://wanfancabletray.com/products");
+  assert.equal(metadata.alternates.languages.zh, "https://wanfancabletray.com/zh/products");
+  assert.equal(metadata.alternates.languages["x-default"], "https://wanfancabletray.com/products");
+  assert.equal(metadata.openGraph.url, "https://wanfancabletray.com/zh/products");
+});
+
 test("Organization structured data uses the same verified company and contact facts as shared chrome", () => {
   const organization = buildOrganizationJsonLd();
 
@@ -63,6 +79,29 @@ test("locale-aware sitemap includes real detail routes and excludes drafts and e
   assert.equal(urls.some((url) => url.includes("/draft-update")), false);
   assert.equal(urls.some((url) => /\/zh(?:\/|$)/.test(url)), false);
   assert.equal(entries.every((entry) => entry.alternates.languages.en === entry.url), true);
+});
+
+test("sitemap emits only configured locale routes and every alternate has a distinct canonical URL", () => {
+  const entries = buildSitemapEntries({
+    articles: [{ slug: "locale-routing-update", updatedAt: "2026-08-24T08:30:00.000Z", publishedAt: "2026-08-24T08:00:00.000Z" }],
+    products: [{ slug: "cable-tray-systems" }],
+    supportedLocales: ["en", "zh"],
+  });
+  const urls = new Set(entries.map(({ url }) => url));
+
+  assert.equal(urls.has("https://wanfancabletray.com/products"), true);
+  assert.equal(urls.has("https://wanfancabletray.com/zh/products"), true);
+  assert.equal(urls.has("https://wanfancabletray.com/products/cable-tray-systems"), true);
+  assert.equal(urls.has("https://wanfancabletray.com/zh/products/cable-tray-systems"), true);
+  assert.equal(urls.has("https://wanfancabletray.com/news/locale-routing-update"), true);
+  assert.equal(urls.has("https://wanfancabletray.com/zh/news/locale-routing-update"), true);
+  assert.equal([...urls].some((url) => url.includes("/xx/")), false);
+
+  for (const entry of entries) {
+    assert.equal(entry.alternates.languages.en.includes("/en/"), false);
+    assert.equal(entry.alternates.languages.zh.startsWith("https://wanfancabletray.com/zh"), true);
+    assert.equal(entry.alternates.languages.en === entry.alternates.languages.zh, false);
+  }
 });
 
 test("every static sitemap pathname resolves to an extant page route", async () => {
@@ -122,9 +161,10 @@ test("every independent static page exposes canonical Open Graph metadata and th
 
   for (const [path, route] of routes) {
     const expectedUrl = new URL(path, `${siteOrigin}/`).toString();
-    assert.equal(route.metadata.alternates.canonical, expectedUrl);
-    assert.equal(route.metadata.openGraph.url, expectedUrl);
-    assert.equal(route.metadata.openGraph.images[0].url, `${siteOrigin}/opengraph-image`);
+    const metadata = await route.generateMetadata();
+    assert.equal(metadata.alternates.canonical, expectedUrl);
+    assert.equal(metadata.openGraph.url, expectedUrl);
+    assert.equal(metadata.openGraph.images[0].url, `${siteOrigin}/opengraph-image`);
   }
 });
 

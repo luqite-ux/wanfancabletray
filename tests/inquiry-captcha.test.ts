@@ -8,7 +8,7 @@ import {
   type CaptchaChallengeConsumeRecord,
   type CaptchaChallengeIssueRecord,
   type CaptchaChallengeStore,
-} from '../lib/inquiry-captcha.ts'
+} from '../lib/inquiry-captcha'
 
 Reflect.set(process.env, 'NODE_ENV', 'test')
 
@@ -57,6 +57,32 @@ describe('Wanfan inquiry CAPTCHA', () => {
       verifyCaptchaSubmission(request),
     ])
     assert.equal(results.filter((result) => result.ok).length, 1)
+  })
+
+  it('issues a nonvisual arithmetic challenge that verifies through the same one-time store', async () => {
+    const store = new MemoryChallengeStore()
+    const challenge = await issueCaptchaChallenge({
+      secret,
+      tenantId,
+      siteScope,
+      scope,
+      store,
+      now: 1_000,
+      accessible: true,
+    })
+    assert.match(challenge.accessiblePrompt ?? '', /^What is \d plus \d\?$/)
+    assert.equal(challenge.svg, '')
+    assert.ok(challenge.testAnswer)
+    assert.deepEqual(await verifyCaptchaSubmission({
+      secret,
+      tenantId,
+      siteScope,
+      scope,
+      token: challenge.token,
+      answer: challenge.testAnswer!,
+      store,
+      now: 1_001,
+    }), { ok: true })
   })
 
   it('protects the inquiry insert on the server before persistence and notification', async () => {

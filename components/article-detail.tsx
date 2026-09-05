@@ -4,19 +4,22 @@ import { ArrowLeft, CalendarDays } from "lucide-react";
 import { sanitizeArticleContent } from "@/lib/article-content";
 import type { ArticleView } from "@/lib/articles-db";
 import { formatPublishedDate } from "@/lib/articles-db";
+import type { SiteLocale } from "@/lib/localization";
+import { localizePath } from "@/lib/locale-routing";
+import { company } from "@/lib/site-data";
 
-export function ArticleDetail({ article }: { article: ArticleView }) {
+export function ArticleDetail({ article, locale = company.defaultLocale }: { article: ArticleView; locale?: SiteLocale }) {
   const contentHtml = sanitizeArticleContent(article.content);
 
   return (
     <article className="news-detail">
       <header className="news-detail__header">
         <div className="page-container">
-          <Link className="back-link" href="/news"><ArrowLeft aria-hidden="true" size={18} /> Back to news</Link>
+          <Link className="back-link" href={localizePath("/news", locale, company.defaultLocale)}><ArrowLeft aria-hidden="true" size={18} /> Back to news</Link>
           <div className="news-detail__heading">
             <p className="eyebrow">Wanfan update</p>
             <h1>{article.title}</h1>
-            <div className="news-detail__date"><CalendarDays aria-hidden="true" size={18} /><time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt)}</time></div>
+            <div className="news-detail__date"><CalendarDays aria-hidden="true" size={18} /><time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt, locale)}</time></div>
             {article.excerpt ? <p className="news-detail__excerpt">{article.excerpt}</p> : null}
           </div>
         </div>

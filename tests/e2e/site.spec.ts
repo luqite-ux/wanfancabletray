@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
+const localCaptchaSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="56" viewBox="0 0 160 56"><rect width="160" height="56" rx="8" fill="#f8fafc"/><text x="38" y="36" fill="#0f172a" font-size="24">TEST</text></svg>';
+
 const independentRoutes = [
   ["/", "Engineered Cable Management for Demanding Projects."],
   ["/products", "Cable-management product systems"],
@@ -30,6 +32,24 @@ function monitorRuntime(page: Page) {
   return problems;
 }
 
+async function stubCaptcha(page: Page) {
+  await page.route(/\/api\/captcha(?:\?.*)?$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        svg: localCaptchaSvg,
+        token: "local-playwright-captcha-token",
+        expiresAt: Date.now() + 5 * 60_000,
+      }),
+    });
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await stubCaptcha(page);
+});
+
 async function expectImagesComplete(page: Page, selector: string) {
   const images = page.locator(selector);
   expect(await images.count()).toBeGreaterThan(0);
@@ -58,6 +78,17 @@ async function expectNoSeriousAccessibilityViolations(page: Page) {
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   expect(results.violations.filter(({ impact }) => impact === "critical" || impact === "serious")).toEqual([]);
+}
+
+async function expectMinimumTouchTarget(locator: ReturnType<Page["locator"]>, label: string) {
+  const box = await locator.boundingBox();
+  expect(box, `${label} should have a rendered touch target`).not.toBeNull();
+  expect(box!.width, `${label} width should be at least 44 CSS pixels`).toBeGreaterThanOrEqual(44);
+  expect(box!.height, `${label} height should be at least 44 CSS pixels`).toBeGreaterThanOrEqual(44);
+  return {
+    width: Number(box!.width.toFixed(2)),
+    height: Number(box!.height.toFixed(2)),
+  };
 }
 
 async function capture(page: Page, testInfo: TestInfo, name: string) {
@@ -166,13 +197,16 @@ test("all independent routes render unique primary content without runtime error
 });
 
 test("product list and detail galleries keep every product image complete", async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
   const runtimeProblems = monitorRuntime(page);
   await page.goto("/products");
   await expectImagesComplete(page, ".product-card__image-wrap img");
   const productDetailPaths = await page.getByRole("link", { name: /View Details/ }).evaluateAll((links) =>
     [...new Set(links.map((link) => (link as HTMLAnchorElement).pathname))],
   );
-  expect(productDetailPaths.length).toBeGreaterThan(0);
+  await expect(page.locator(".product-card")).toHaveCount(10);
+  await expect(page.getByRole("link", { name: /View Details/ })).toHaveCount(10);
+  expect(productDetailPaths).toHaveLength(10);
   await capture(page, testInfo, "products");
 
   await page.getByRole("link", { name: /View Details/ }).first().click();
@@ -188,6 +222,47 @@ test("product list and detail galleries keep every product image complete", asyn
     await expectImagesComplete(page, ".product-gallery__main img, .product-gallery__thumb img");
   }
   expect(runtimeProblems).toEqual([]);
+});
+
+test("mobile controls expose at least 44 by 44 CSS-pixel touch targets", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Touch-target measurements run in the mobile browser project.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const measurements: Record<string, { width: number; height: number }> = {};
+  const measure = async (label: string, locator: ReturnType<Page["locator"]>) => {
+    measurements[label] = await expectMinimumTouchTarget(locator, label);
+  };
+  const carousel = page.getByRole("region", { name: "Featured Wanfan capabilities" });
+  await measure("Header logo link", page.getByRole("banner").getByRole("link", { name: "Wanfan home" }));
+  await measure("Previous-slide button", carousel.getByRole("button", { name: "Previous slide" }));
+  await measure("Pause button", carousel.getByRole("button", { name: /Keep automatic slides paused/ }));
+  await measure("Next-slide button", carousel.getByRole("button", { name: "Next slide" }));
+  for (const [index, selector] of (await carousel.getByRole("button", { name: /^Show slide / }).all()).entries()) {
+    await measure(`Slide selector ${index + 1}`, selector);
+  }
+
+  const footerNavigationLinks = await page.getByRole("navigation", { name: "Footer navigation" }).getByRole("link").all();
+  for (const link of footerNavigationLinks) {
+    await measure(`Footer navigation link ${await link.textContent()}`, link);
+  }
+  const footerContacts = page.locator(".site-footer__contact a");
+  await measure("Footer email link", footerContacts.nth(0));
+  await measure("Footer phone link", footerContacts.nth(1));
+
+  await page.goto("/contact");
+  const contactLinks = page.locator(".contact-detail-card a");
+  await measure("Contact-page email link", contactLinks.nth(0));
+  await measure("Contact-page phone link", contactLinks.nth(1));
+  await measure("Attachment input", page.getByLabel("Drawing / specification attachment"));
+  await expect(page.getByLabel("Verification code")).toBeEnabled();
+  await measure("CAPTCHA answer input", page.getByLabel("Verification code"));
+  await measure("CAPTCHA refresh button", page.getByRole("button", { name: "Refresh" }));
+  await testInfo.attach("touch-target-measurements", {
+    body: JSON.stringify(measurements, null, 2),
+    contentType: "application/json",
+  });
+  console.log(`[touch-target-measurements] ${JSON.stringify(measurements)}`);
 });
 
 test("news empty state and inquiry validation stay honest without live credentials", async ({ page }) => {
@@ -208,6 +283,7 @@ test("news empty state and inquiry validation stay honest without live credentia
   await expect(page.getByRole("combobox", { name: "Product category", exact: true })).toHaveValue(/Cable management/i);
   await page.getByRole("textbox", { name: "Estimated quantity", exact: true }).fill("100 m");
   await page.getByRole("textbox", { name: "Project message", exact: true }).fill("Local browser verification only; no external submission is allowed.");
+  await page.getByLabel("Verification code").fill("TEST");
 
   let interceptedSubmissions = 0;
   await page.route("**/api/inquiries", async (route) => {

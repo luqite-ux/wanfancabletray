@@ -5,14 +5,17 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { CAROUSEL_INTERVAL_MS, getCarouselProgress, pauseCarouselClock, resetCarouselClock, startCarouselClock, type CarouselClock } from "@/lib/carousel-timing";
+import type { SiteLocale } from "@/lib/localization";
+import { localizePath } from "@/lib/locale-routing";
+import { company } from "@/lib/site-data";
 
 export const heroSlides = [
   {
     eyebrow: "Cable tray systems",
     title: "Engineered Cable Management for Demanding Projects.",
     description: "Cable-management systems and structural supports shaped around project requirements.",
-    image: "/assets/factory/workshop-09.jpg",
-    imageAlt: "Finished cable tray systems in the Wanfan workshop",
+    image: "/assets/hero/hero-product-systems-v2.png",
+    imageAlt: "Bright installed cable tray systems in a modern project environment",
     primaryCta: { label: "Request a Quote", href: "/request-a-quote" },
     secondaryCta: { label: "Explore Products", href: "/products" },
   },
@@ -20,23 +23,23 @@ export const heroSlides = [
     eyebrow: "Drawing-based manufacturing",
     title: "Flexible Manufacturing, Built Around Your Drawings.",
     description: "Share your drawings and specifications to begin a practical material and process review.",
-    image: "/assets/factory/workshop-04.jpg",
-    imageAlt: "Cable tray fabrication equipment in the Wanfan workshop",
+    image: "/assets/hero/hero-production-line-v2.png",
+    imageAlt: "Bright automated cable tray production line with finished profiles",
     primaryCta: { label: "Discuss Your Drawing", href: "/request-a-quote" },
     secondaryCta: { label: "See Manufacturing", href: "/manufacturing" },
   },
   {
-    eyebrow: "Wanfan / 万帆",
+    eyebrow: "Wanfan quality control",
     title: "Registered Brand. Controlled Production. Project-Ready Support.",
     description: "A registered Class 6 brand with production support for cable-management project requirements.",
-    image: "/assets/factory/workshop-13.jpg",
-    imageAlt: "Organized cable tray production area at the Wanfan factory",
+    image: "/assets/hero/hero-quality-control-v2.png",
+    imageAlt: "Cable tray samples under dimensional inspection in a bright quality area",
     primaryCta: { label: "Start an Inquiry", href: "/request-a-quote" },
     secondaryCta: { label: "About Wanfan", href: "/about" },
   },
 ] as const;
 
-export function HeroCarousel() {
+export function HeroCarousel({ locale = company.defaultLocale }: { locale?: SiteLocale }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isUserPaused, setIsUserPaused] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -136,8 +139,8 @@ export function HeroCarousel() {
         <h1>{activeSlide.title}</h1>
         <p className="hero-carousel__description">{activeSlide.description}</p>
         <div className="hero-carousel__ctas">
-          <InquiryCta label={activeSlide.primaryCta.label} />
-          <Link className="secondary-cta" href={activeSlide.secondaryCta.href}>{activeSlide.secondaryCta.label}</Link>
+          <InquiryCta label={activeSlide.primaryCta.label} locale={locale} />
+          <Link className="secondary-cta" href={localizePath(activeSlide.secondaryCta.href, locale, company.defaultLocale)}>{activeSlide.secondaryCta.label}</Link>
         </div>
       </div>
       <div className="hero-carousel__controls" aria-label="Carousel controls">
