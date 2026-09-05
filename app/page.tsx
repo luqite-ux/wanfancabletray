@@ -87,7 +87,13 @@ export default async function HomePage() {
           <div>
             <SectionHeading eyebrow="Factory and production" title="A workshop view before the first project conversation." description={`${company.brand} supports cable-management and structural-support requirements from its Nanjing production operation.`} />
             <p className="factory-copy">Use the short workshop clip or browse the production imagery to understand the setting behind your order discussion.</p>
-            <FactoryVideo poster="/assets/factory/production-poster.jpg" source="/assets/factory/production-clip.mp4" />
+            <FactoryVideo
+              poster="/assets/factory/production-poster.jpg"
+              sources={[
+                "/assets/factory/workshop-video-1.mp4",
+                "/assets/factory/workshop-video-2.mp4",
+              ]}
+            />
           </div>
           <div className="factory-photo-grid">
             <div className="factory-photo factory-photo--large"><Image alt="Wide view of the Wanfan factory workshop" fill sizes="(max-width: 900px) 100vw, 40vw" src="/assets/factory/workshop-01.jpg" style={{ objectFit: "cover" }} /></div>

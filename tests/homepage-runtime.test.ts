@@ -12,6 +12,20 @@ test("hero carousel exposes a named carousel region", async () => {
   assert.match(carouselTag, /aria-label="Featured Wanfan capabilities"/);
 });
 
+test("factory video renders the first item from the supplied workshop playlist", async () => {
+  const { FactoryVideo } = await import("../components/factory-video");
+  const markup = renderToStaticMarkup(createElement(FactoryVideo, {
+    poster: "/assets/factory/production-poster.jpg",
+    sources: [
+      "/assets/factory/workshop-video-1.mp4",
+      "/assets/factory/workshop-video-2.mp4",
+    ],
+  }));
+
+  assert.match(markup, /<video[^>]*>/);
+  assert.match(markup, /src="\/assets\/factory\/workshop-video-1\.mp4"/);
+});
+
 test("material mapping provides a unique icon, explicit mark, and accessible label for every option", async () => {
   const { materialOptions } = await import("../lib/home-content");
 

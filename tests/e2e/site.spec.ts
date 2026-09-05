@@ -128,6 +128,29 @@ test("reduced motion keeps carousel content stable", async ({ page }) => {
   expect(runtimeProblems).toEqual([]);
 });
 
+test("workshop playlist advances through both client videos and loops back to the first", async ({ page, request }, testInfo) => {
+  const runtimeProblems = monitorRuntime(page);
+  await page.goto("/");
+
+  for (const source of ["/assets/factory/workshop-video-1.mp4", "/assets/factory/workshop-video-2.mp4"]) {
+    expect((await request.get(source)).ok(), `${source} should be publicly available`).toBe(true);
+  }
+
+  const video = page.getByLabel("Wanfan workshop production video");
+  const source = video.locator("source");
+  await expect(source).toHaveAttribute("src", "/assets/factory/workshop-video-1.mp4");
+  await video.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `output/playwright/${testInfo.project.name}-workshop-playlist.png` });
+
+  await video.evaluate((element) => element.dispatchEvent(new Event("ended")));
+  await expect(source).toHaveAttribute("src", "/assets/factory/workshop-video-2.mp4");
+
+  await video.evaluate((element) => element.dispatchEvent(new Event("ended")));
+  await expect(source).toHaveAttribute("src", "/assets/factory/workshop-video-1.mp4");
+  expect(runtimeProblems).toEqual([]);
+});
+
 test("all independent routes render unique primary content without runtime errors", async ({ page }, testInfo) => {
   const runtimeProblems = monitorRuntime(page);
   for (const [route, heading] of independentRoutes) {
