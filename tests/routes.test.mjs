@@ -99,6 +99,19 @@ test("independent listing and company routes expose unique canonical and Open Gr
   assert.equal(new Set(titles).size, routeNames.length);
 });
 
+test("quality page exposes the supplied ISO 9001 credential with a complete certificate image", async () => {
+  const { default: QualityPage } = await import("../app/quality/page.tsx");
+  const html = await renderPage(QualityPage);
+
+  assert.match(html, /ISO 9001:2015 Quality Management System/i);
+  assert.match(html, /WTQ865399048/);
+  assert.match(html, /September 11, 2026/);
+  assert.match(html, /September 10, 2029/);
+  assert.match(html, /src="\/assets\/quality\/iso-9001-certificate\.jpg"/);
+  assert.match(html, /loading="eager"/);
+  assert.match(html, /alt="Chinese and English ISO 9001:2015 quality management system certificate for Nanjing Wanfan Electric Equipment Co\., LTD"/);
+});
+
 test("public manufacturing views render production facts from shared site data", async () => {
   const [{ default: HomePage }, { default: AboutPage }, { default: ManufacturingPage }, { productionFacts }] = await Promise.all([
     import("../app/page.tsx"),

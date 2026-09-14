@@ -347,6 +347,17 @@ h1 {
 .capability-card svg { width: 32px; height: 32px; color: var(--clear-blue); }
 .capability-card h3 { margin: 24px 0 10px; color: var(--engineering-blue); font-size: 1.22rem; }
 .capability-card p { margin: 0; color: #405b78; line-height: 1.62; }
+.quality-credential { background: linear-gradient(135deg, #f7fcff, #edf7ff 52%, #fff); }
+.quality-credential__grid { display: grid; grid-template-columns: minmax(270px, .72fr) minmax(0, 1.28fr); gap: clamp(34px, 6vw, 78px); align-items: center; }
+.quality-credential__copy h2 { margin: 10px 0 18px; color: var(--engineering-blue); font-size: clamp(2rem, 4vw, 3.7rem); line-height: 1.05; letter-spacing: -.05em; }
+.quality-credential__copy > p:not(.eyebrow) { color: #405b78; line-height: 1.7; }
+.quality-credential__facts { margin: 28px 0 0; }
+.quality-credential__facts > div { display: grid; grid-template-columns: 142px minmax(0, 1fr); gap: 16px; padding: 13px 0; border-top: 1px solid rgba(8,120,209,.2); }
+.quality-credential__facts dt { color: #405b78; }
+.quality-credential__facts dd { margin: 0; color: var(--engineering-blue); font-weight: 780; overflow-wrap: anywhere; }
+.quality-credential__document { display: grid; gap: 12px; padding: clamp(10px, 1.5vw, 18px); border: 1px solid rgba(8,120,209,.2); border-radius: 24px; background: #fff; box-shadow: 0 20px 58px rgba(37,53,143,.12); color: var(--engineering-blue); font-weight: 760; text-align: center; text-decoration: none; }
+.quality-credential__document img { display: block; width: 100%; height: auto; border-radius: 14px; object-fit: contain; }
+.quality-credential__document:hover { border-color: rgba(8,120,209,.48); box-shadow: 0 26px 68px rgba(37,53,143,.16); }
 .process-band { padding: clamp(68px, 9vw, 108px) 0; background: var(--engineering-blue); color: #fff; }
 .process-band .eyebrow { color: #bcecff; }
 .process-band h2 { max-width: 850px; color: #fff; }
@@ -500,7 +511,8 @@ h1 {
   .site-footer__contact a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; margin-bottom: 0; }
   .contact-detail-card a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; }
   .metrics-grid, .product-grid, .solutions-grid, .materials-grid, .manufacturing-flow, .factory-grid, .faq-layout, .news-grid, .news-list-grid, .contact-details-grid, .inquiry-form__grid { grid-template-columns: 1fr; }
-  .inner-page-hero__grid, .product-detail-hero__grid, .detail-split, .detail-card-grid, .detail-card-grid--two, .capability-grid, .process-band__grid, .manufacturing-evidence__grid, .about-story, .faq-page-layout, .inquiry-layout { grid-template-columns: 1fr; }
+  .inner-page-hero__grid, .product-detail-hero__grid, .detail-split, .detail-card-grid, .detail-card-grid--two, .capability-grid, .process-band__grid, .manufacturing-evidence__grid, .about-story, .faq-page-layout, .inquiry-layout, .quality-credential__grid { grid-template-columns: 1fr; }
+  .quality-credential__facts > div { grid-template-columns: 1fr; gap: 5px; }
   .product-gallery__main { min-height: 390px; }
   .detail-flow, .route-flow { grid-template-columns: 1fr; }
   .specification-list > div, .fact-list > div, .identity-list > div { grid-template-columns: 1fr; gap: 6px; }

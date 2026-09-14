@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ClipboardList, Eye, PackageCheck, Ruler, ScanSearch, ShieldCheck } from "lucide-react";
 import { InquiryCta } from "@/components/inquiry-cta";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -27,6 +28,33 @@ export default async function QualityPage() {
     <main>
       <section className="inner-page-hero" aria-labelledby="quality-title"><div className="page-container inner-page-hero__grid"><div><p className="eyebrow">Controlled requirements</p><h1 id="quality-title">Quality</h1></div><p>Order-specific checks connect the approved inputs to production, inspection, and dispatch preparation without implying unsupported third-party approvals.</p></div></section>
       <section className="content-section"><div className="page-container"><div className="page-section-heading"><p className="eyebrow">Inspection pathway</p><h2>Order-specific checks at practical production points.</h2><p>The applicable checks are defined by the confirmed product, drawing, material, process, and order requirements.</p></div><div className="capability-grid">{checkpoints.map(({ icon: Icon, title, text }) => <article className="capability-card" key={title}><Icon aria-hidden="true" /><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
+      <section className="content-section quality-credential" aria-labelledby="quality-credential-title">
+        <div className="page-container quality-credential__grid">
+          <div className="quality-credential__copy">
+            <p className="eyebrow">Management system credential</p>
+            <h2 id="quality-credential-title">ISO 9001:2015 Quality Management System</h2>
+            <p>The supplied bilingual certificate records the company&apos;s quality management system registration and stated certification scope.</p>
+            <dl className="quality-credential__facts">
+              <div><dt>Standard</dt><dd>GB/T19001-2016 / ISO9001:2015</dd></div>
+              <div><dt>Certificate number</dt><dd>WTQ865399048</dd></div>
+              <div><dt>Registration date</dt><dd>September 11, 2026</dd></div>
+              <div><dt>Valid through</dt><dd>September 10, 2029</dd></div>
+            </dl>
+          </div>
+          <a className="quality-credential__document" href="/assets/quality/iso-9001-certificate.jpg" target="_blank" rel="noreferrer" aria-label="Open the full ISO 9001 certificate image">
+            <Image
+              src="/assets/quality/iso-9001-certificate.jpg"
+              alt="Chinese and English ISO 9001:2015 quality management system certificate for Nanjing Wanfan Electric Equipment Co., LTD"
+              width={1748}
+              height={1169}
+              sizes="(max-width: 760px) calc(100vw - 32px), 62vw"
+              loading="eager"
+              unoptimized
+            />
+            <span>View full certificate</span>
+          </a>
+        </div>
+      </section>
       <section className="process-band" aria-labelledby="quality-record-title"><div className="page-container"><p className="eyebrow">Traceable conversation</p><h2 id="quality-record-title">Confirm the inspection basis before production.</h2><div className="process-band__grid"><p>Approved drawings and specifications define the review basis.</p><p>Material and surface directions remain tied to the confirmed order.</p><p>Inspection scope is discussed for the applicable product requirements.</p></div></div></section>
       <section className="inquiry-banner" aria-labelledby="quality-inquiry-title"><div className="page-container inquiry-banner__inner"><div><p className="eyebrow">Define the review basis</p><h2 id="quality-inquiry-title">Share the checks your project requires.</h2><p>Include drawings, dimensions, material direction, application context, and packing needs.</p></div><InquiryCta locale={locale} /></div></section>
     </main>
