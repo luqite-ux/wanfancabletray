@@ -1,3 +1,5 @@
+import { NextResponse as ServiceGuardNextResponse, type NextRequest as ServiceGuardRequest } from 'next/server'
+import { isServiceGuardExcludedPath, isWebsiteServiceAvailable } from './lib/service-status'
 import { NextResponse, type NextRequest } from "next/server";
 import { getRuntimeSupportedLocales } from "@/lib/locale-config";
 import { LOCALE_REQUEST_HEADER, resolveLocaleHeader, resolveLocaleRoute } from "@/lib/locale-routing";
@@ -5,7 +7,7 @@ import { company } from "@/lib/site-data";
 
 const unsupportedLocalePath = "/__unsupported-locale__";
 
-export async function proxy(request: NextRequest) {
+async function existingServiceExpiryIntegration(request: NextRequest) {
   const supportedLocales = await getRuntimeSupportedLocales();
   const decision = resolveLocaleRoute(
     request.nextUrl.pathname,
@@ -49,3 +51,8 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/((?!api(?:/|$)|admin(?:/|$)|_next(?:/|$)|assets(?:/|$)|.*\\.[^/]+$).*)"],
 };
+
+export async function proxy(request: ServiceGuardRequest) {
+  if (!isServiceGuardExcludedPath(request.nextUrl.pathname) && !await isWebsiteServiceAvailable()) return ServiceGuardNextResponse.rewrite(new URL('/service-expired', request.url))
+  return existingServiceExpiryIntegration(request)
+}
